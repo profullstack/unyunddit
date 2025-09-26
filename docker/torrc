@@ -1,0 +1,35 @@
+# Tor configuration for hidden service + SOCKS proxy
+# Optimized for Railway and Digital Ocean deployment
+
+SocksPort 9050 # Enable SOCKS proxy for potential future features
+HiddenServiceDir /var/lib/tor/hidden_service/
+HiddenServicePort 80 127.0.0.1:3000
+
+# Security settings
+DataDirectory /var/lib/tor
+RunAsDaemon 1
+User tor
+
+# CRITICAL: Ensure we are NOT an exit node
+ExitPolicy reject *:*
+ExitRelay 0
+
+# Disable relay functionality completely
+ORPort 0
+DirPort 0
+BridgeRelay 0
+
+# Logging
+Log notice file /var/log/tor/notices.log
+
+# Allow connections from localhost
+SocksPolicy accept 127.0.0.1
+SocksPolicy reject *
+
+# Additional security
+ClientOnly 1
+
+# Performance optimizations for cloud deployment
+CircuitBuildTimeout 30
+LearnCircuitBuildTimeout 0
+MaxCircuitDirtiness 600

@@ -1,0 +1,48 @@
+# Digital Ocean App Platform specification for onion-ssr-boilerplate
+# Deploys SvelteKit app with Tor hidden service
+
+name: onion-ssr-boilerplate
+region: nyc
+
+services:
+- name: web
+  source_dir: /
+  run_command: /start.sh
+  environment_slug: docker
+  instance_count: 1
+  instance_size_slug: basic-xxs
+  dockerfile_path: Dockerfile
+  http_port: 3000
+  
+  # Environment variables
+  envs:
+  - key: NODE_ENV
+    value: production
+  - key: PORT
+    value: "3000"
+  - key: SUPABASE_URL
+    value: YOUR_SUPABASE_URL
+    type: SECRET
+  - key: SUPABASE_ANON_KEY
+    value: YOUR_SUPABASE_ANON_KEY
+    type: SECRET
+  - key: SUPABASE_SERVICE_ROLE_KEY
+    value: YOUR_SUPABASE_SERVICE_ROLE_KEY
+    type: SECRET
+
+  # Health check
+  health_check:
+    http_path: /
+    initial_delay_seconds: 60
+    period_seconds: 30
+    timeout_seconds: 10
+    success_threshold: 1
+    failure_threshold: 3
+
+  # Resource limits
+  instance_size_slug: basic-xxs
+  
+  # Persistent storage for Tor keys
+  # Note: Digital Ocean App Platform doesn't support volumes
+  # Tor keys will be regenerated on each deployment
+  # For persistent .onion addresses, consider using Digital Ocean Droplets instead
