@@ -1,5 +1,5 @@
 import { supabase } from '$lib/supabase.js';
-import { fail } from '@sveltejs/kit';
+import { fail, redirect } from '@sveltejs/kit';
 import { createHash } from 'crypto';
 
 /** @type {import('./$types').PageServerLoad} */
@@ -79,14 +79,14 @@ function hashIP(ip) {
 /** @type {import('./$types').Actions} */
 export const actions = {
 	upvote: async ({ request, getClientAddress }) => {
-		try {
-			const data = await request.formData();
-			const postId = data.get('postId');
-			
-			if (!postId) {
-				return fail(400, { error: 'Post ID is required' });
-			}
+		const data = await request.formData();
+		const postId = data.get('postId');
+		
+		if (!postId) {
+			return fail(400, { error: 'Post ID is required' });
+		}
 
+		try {
 			// Get real client IP, handling Tor proxy headers
 			const forwardedFor = request.headers.get('x-forwarded-for');
 			const realIP = request.headers.get('x-real-ip');
@@ -160,23 +160,26 @@ export const actions = {
 				console.error('Error updating vote counts:', updateError);
 				// Don't fail the request, just log the error
 			}
-
-			return { success: true };
 		} catch (error) {
 			console.error('Unexpected error in upvote action:', error);
 			return fail(500, { error: 'Internal server error' });
 		}
+
+		// Redirect back to the referring page to refresh the data
+		const referer = request.headers.get('referer');
+		const redirectUrl = referer ? new URL(referer).pathname : '/';
+		throw redirect(302, redirectUrl);
 	},
 
 	downvote: async ({ request, getClientAddress }) => {
-		try {
-			const data = await request.formData();
-			const postId = data.get('postId');
-			
-			if (!postId) {
-				return fail(400, { error: 'Post ID is required' });
-			}
+		const data = await request.formData();
+		const postId = data.get('postId');
+		
+		if (!postId) {
+			return fail(400, { error: 'Post ID is required' });
+		}
 
+		try {
 			// Get real client IP, handling Tor proxy headers
 			const forwardedFor = request.headers.get('x-forwarded-for');
 			const realIP = request.headers.get('x-real-ip');
@@ -244,11 +247,14 @@ export const actions = {
 				console.error('Error updating vote counts:', updateError);
 				// Don't fail the request, just log the error
 			}
-
-			return { success: true };
 		} catch (error) {
 			console.error('Unexpected error in downvote action:', error);
 			return fail(500, { error: 'Internal server error' });
 		}
+
+		// Redirect back to the referring page to refresh the data
+		const referer = request.headers.get('referer');
+		const redirectUrl = referer ? new URL(referer).pathname : '/';
+		throw redirect(302, redirectUrl);
 	}
 };
