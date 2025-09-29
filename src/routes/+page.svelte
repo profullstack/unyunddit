@@ -2,17 +2,17 @@
 	/** @type {import('./$types').PageData} */
 	export let data;
 
-	const { posts } = data;
+	const { posts, popularCategories } = data;
 </script>
 
 <svelte:head>
-	<title>UnyundIt - Anonymous Reddit Clone</title>
+	<title>Unyunddit - Anonymous Reddit Clone</title>
 	<meta name="description" content="Anonymous Reddit clone for the Tor network. Posts auto-delete after 36 hours." />
 </svelte:head>
 
 <main>
 	<header class="header">
-		<h1>🧅 UnyundIt</h1>
+		<h1>🧅 Unyunddit</h1>
 		<p class="tagline">Anonymous Reddit Clone - Posts disappear after 36 hours</p>
 		<nav class="nav">
 			<a href="/" class="nav-link active">Home</a>
@@ -22,65 +22,86 @@
 	</header>
 
 	<section class="content">
+		<!-- Popular Categories Section -->
+		{#if popularCategories && popularCategories.length > 0}
+			<div class="categories-section">
+				<h2>Popular Categories</h2>
+				<div class="categories-grid">
+					{#each popularCategories.slice(0, 12) as category}
+						<a href="/s/{category.slug}" class="category-card">
+							<span class="category-name">{category.name}</span>
+							<span class="category-count">{category.post_count} posts</span>
+						</a>
+					{/each}
+				</div>
+			</div>
+		{/if}
+
+		<!-- Posts Section -->
 		{#if posts && posts.length > 0}
-			<div class="posts">
-				{#each posts as post}
-					<article class="post">
-						<div class="post-votes">
-							<form method="POST" action="/?/upvote" class="vote-form">
-								<input type="hidden" name="postId" value={post.id} />
-								<button type="submit" class="vote-btn upvote" title="Upvote">▲</button>
-							</form>
-							<span class="score">{post.upvotes - post.downvotes}</span>
-							<form method="POST" action="/?/downvote" class="vote-form">
-								<input type="hidden" name="postId" value={post.id} />
-								<button type="submit" class="vote-btn downvote" title="Downvote">▼</button>
-							</form>
-						</div>
-						
-						<div class="post-content">
-							<h2 class="post-title">
-								{#if post.url}
-									<a href={post.url} target="_blank" rel="noopener noreferrer" class="external-link">
-										{post.title}
-									</a>
-									<span class="domain">({new URL(post.url).hostname})</span>
-								{:else}
-									<a href="/post/{post.id}" class="post-link">{post.title}</a>
-								{/if}
-							</h2>
-							
-							{#if post.content}
-								<div class="post-text">
-									{post.content}
-								</div>
-							{/if}
-							
-							<div class="post-meta">
-								<span class="time">
-									{new Date(post.created_at).toLocaleString('en-US', {
-										year: 'numeric',
-										month: 'short',
-										day: 'numeric',
-										hour: '2-digit',
-										minute: '2-digit'
-									})}
-								</span>
-								<a href="/post/{post.id}" class="comments-link">
-									{post.comment_count} comment{post.comment_count !== 1 ? 's' : ''}
-								</a>
-								<span class="expires">
-									Expires: {new Date(post.expires_at).toLocaleString('en-US', {
-										month: 'short',
-										day: 'numeric',
-										hour: '2-digit',
-										minute: '2-digit'
-									})}
-								</span>
+			<div class="posts-section">
+				<h2>Recent Posts</h2>
+				<div class="posts">
+					{#each posts as post}
+						<article class="post">
+							<div class="post-votes">
+								<form method="POST" action="/?/upvote" class="vote-form">
+									<input type="hidden" name="postId" value={post.id} />
+									<button type="submit" class="vote-btn upvote" title="Upvote">▲</button>
+								</form>
+								<span class="score">{post.upvotes - post.downvotes}</span>
+								<form method="POST" action="/?/downvote" class="vote-form">
+									<input type="hidden" name="postId" value={post.id} />
+									<button type="submit" class="vote-btn downvote" title="Downvote">▼</button>
+								</form>
 							</div>
-						</div>
-					</article>
-				{/each}
+							
+							<div class="post-content">
+								<h3 class="post-title">
+									{#if post.url}
+										<a href={post.url} target="_blank" rel="noopener noreferrer" class="external-link">
+											{post.title}
+										</a>
+										<span class="domain">({new URL(post.url).hostname})</span>
+									{:else}
+										<a href="/post/{post.id}" class="post-link">{post.title}</a>
+									{/if}
+								</h3>
+								
+								{#if post.content}
+									<div class="post-text">
+										{post.content.length > 200 
+											? post.content.substring(0, 200) + '...' 
+											: post.content}
+									</div>
+								{/if}
+								
+								<div class="post-meta">
+									<span class="time">
+										{new Date(post.created_at).toLocaleString('en-US', {
+											year: 'numeric',
+											month: 'short',
+											day: 'numeric',
+											hour: '2-digit',
+											minute: '2-digit'
+										})}
+									</span>
+									<a href="/post/{post.id}" class="comments-link">
+										{post.comment_count} comment{post.comment_count !== 1 ? 's' : ''}
+									</a>
+									<span class="expires">
+										Expires: {new Date(post.expires_at).toLocaleString('en-US', {
+											month: 'short',
+											day: 'numeric',
+											hour: '2-digit',
+											minute: '2-digit'
+										})}
+									</span>
+								</div>
+							</div>
+						</article>
+					{/each}
+				</div>
 			</div>
 		{:else}
 			<div class="empty-state">
@@ -149,6 +170,54 @@
 		color: white;
 	}
 
+	.content {
+		display: flex;
+		flex-direction: column;
+		gap: 30px;
+	}
+
+	.categories-section h2,
+	.posts-section h2 {
+		color: #ff6b35;
+		margin: 0 0 20px;
+		font-size: 1.5rem;
+	}
+
+	.categories-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+		gap: 15px;
+		margin-bottom: 20px;
+	}
+
+	.category-card {
+		display: flex;
+		flex-direction: column;
+		background-color: #2a2a2a;
+		border: 1px solid #333;
+		border-radius: 8px;
+		padding: 15px;
+		text-decoration: none;
+		color: #e0e0e0;
+		transition: border-color 0.2s, background-color 0.2s;
+	}
+
+	.category-card:hover {
+		border-color: #ff6b35;
+		background-color: #333;
+	}
+
+	.category-name {
+		font-weight: bold;
+		margin-bottom: 5px;
+		color: #ff6b35;
+	}
+
+	.category-count {
+		font-size: 0.9rem;
+		color: #888;
+	}
+
 	.posts {
 		display: flex;
 		flex-direction: column;
@@ -210,7 +279,7 @@
 
 	.post-title {
 		margin: 0 0 10px;
-		font-size: 1.3rem;
+		font-size: 1.2rem;
 		line-height: 1.3;
 	}
 
@@ -236,6 +305,7 @@
 		color: #ccc;
 		white-space: pre-wrap;
 		word-wrap: break-word;
+		line-height: 1.5;
 	}
 
 	.post-meta {
@@ -288,6 +358,15 @@
 			flex-direction: column;
 			align-items: center;
 			gap: 10px;
+		}
+
+		.categories-grid {
+			grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+			gap: 10px;
+		}
+
+		.category-card {
+			padding: 12px;
 		}
 
 		.post {

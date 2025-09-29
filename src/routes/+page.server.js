@@ -14,18 +14,28 @@ export async function load() {
 
 		if (error) {
 			console.error('Error fetching posts:', error);
-			return {
-				posts: []
-			};
+		}
+
+		// Fetch popular categories (ordered by post count)
+		const { data: categories, error: categoriesError } = await supabase
+			.from('categories')
+			.select('*')
+			.order('post_count', { ascending: false })
+			.limit(20);
+
+		if (categoriesError) {
+			console.error('Error fetching categories:', categoriesError);
 		}
 
 		return {
-			posts: posts || []
+			posts: posts || [],
+			popularCategories: categories || []
 		};
 	} catch (error) {
 		console.error('Unexpected error in load function:', error);
 		return {
-			posts: []
+			posts: [],
+			popularCategories: []
 		};
 	}
 }

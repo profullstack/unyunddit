@@ -1,16 +1,52 @@
 <script>
+	import { suggestCategories } from '$lib/categories.js';
+	
 	/** @type {import('./$types').ActionData} */
 	export let form;
+	
+	/** @type {import('./$types').PageData} */
+	export let data;
+	
+	let title = form?.title || '';
+	let url = form?.url || '';
+	let content = form?.content || '';
+	let selectedCategoryId = form?.categoryId || '';
+	let suggestedCategories = [];
+	let showSuggestions = false;
+	
+	// Smart category suggestion
+	function updateSuggestions() {
+		const suggestions = suggestCategories({ url, title });
+		if (suggestions.length > 0) {
+			suggestedCategories = data.categories.filter(cat => 
+				suggestions.includes(cat.slug)
+			).slice(0, 5); // Limit to top 5 suggestions
+			showSuggestions = true;
+		} else {
+			suggestedCategories = [];
+			showSuggestions = false;
+		}
+	}
+	
+	// Update suggestions when title or URL changes
+	$: if (title || url) {
+		updateSuggestions();
+	}
+	
+	function selectSuggestedCategory(categoryId) {
+		selectedCategoryId = categoryId.toString();
+		showSuggestions = false;
+	}
 </script>
 
 <svelte:head>
-	<title>Submit Post - UnyundIt</title>
-	<meta name="description" content="Submit a new anonymous post to UnyundIt" />
+	<title>Submit Post - Unyunddit</title>
+	<meta name="description" content="Submit a new anonymous post to Unyunddit" />
 </svelte:head>
 
 <main>
 	<header class="header">
-		<h1>🧅 <a href="/">UnyundIt</a></h1>
+		<h1>🧅 <a href="/">Unyunddit</a></h1>
 		<nav class="nav">
 			<a href="/" class="nav-link">Home</a>
 			<a href="/submit" class="nav-link active">Submit Post</a>
@@ -29,12 +65,6 @@
 				</div>
 			{/if}
 
-			{#if form?.success}
-				<div class="success">
-					Post submitted successfully! <a href="/">View all posts</a>
-				</div>
-			{/if}
-
 			<form method="POST" action="?/submit" class="form">
 				<div class="form-group">
 					<label for="title">Title *</label>
@@ -45,7 +75,7 @@
 						required
 						maxlength="300"
 						placeholder="Enter your post title..."
-						value={form?.title || ''}
+						bind:value={title}
 					/>
 					<small>Maximum 300 characters</small>
 				</div>
@@ -58,9 +88,41 @@
 						name="url"
 						maxlength="2000"
 						placeholder="https://example.com"
-						value={form?.url || ''}
+						bind:value={url}
 					/>
 					<small>Link to external content (optional)</small>
+				</div>
+
+				<div class="form-group">
+					<label for="category_id">Category (optional)</label>
+					<select
+						id="category_id"
+						name="category_id"
+						bind:value={selectedCategoryId}
+					>
+						<option value="">Select a category...</option>
+						{#each data.categories as category}
+							<option value={category.id}>{category.name}</option>
+						{/each}
+					</select>
+					<small>Choose a category for better discoverability</small>
+					
+					{#if showSuggestions && suggestedCategories.length > 0}
+						<div class="suggestions">
+							<p class="suggestions-label">💡 Suggested categories:</p>
+							<div class="suggestion-buttons">
+								{#each suggestedCategories as category}
+									<button
+										type="button"
+										class="suggestion-btn"
+										on:click={() => selectSuggestedCategory(category.id)}
+									>
+										{category.name}
+									</button>
+								{/each}
+							</div>
+						</div>
+					{/if}
 				</div>
 
 				<div class="form-group">
@@ -71,7 +133,7 @@
 						maxlength="10000"
 						rows="8"
 						placeholder="Write your post content here..."
-						value={form?.content || ''}
+						bind:value={content}
 					></textarea>
 					<small>Maximum 10,000 characters</small>
 				</div>
@@ -180,20 +242,6 @@
 		border: 1px solid #ff6b6b;
 	}
 
-	.success {
-		background-color: #1a4a1a;
-		color: #6bff6b;
-		padding: 15px;
-		border-radius: 4px;
-		margin-bottom: 20px;
-		border: 1px solid #6bff6b;
-	}
-
-	.success a {
-		color: #6bff6b;
-		text-decoration: underline;
-	}
-
 	.form {
 		display: flex;
 		flex-direction: column;
@@ -212,7 +260,8 @@
 	}
 
 	.form-group input,
-	.form-group textarea {
+	.form-group textarea,
+	.form-group select {
 		background-color: #1a1a1a;
 		border: 1px solid #444;
 		border-radius: 4px;
@@ -223,7 +272,8 @@
 	}
 
 	.form-group input:focus,
-	.form-group textarea:focus {
+	.form-group textarea:focus,
+	.form-group select:focus {
 		outline: none;
 		border-color: #ff6b35;
 		box-shadow: 0 0 0 2px rgba(255, 107, 53, 0.2);
@@ -237,6 +287,42 @@
 	.form-group textarea {
 		resize: vertical;
 		min-height: 120px;
+	}
+
+	.suggestions {
+		margin-top: 10px;
+		padding: 15px;
+		background-color: #333;
+		border-radius: 4px;
+		border: 1px solid #444;
+	}
+
+	.suggestions-label {
+		margin: 0 0 10px;
+		color: #ff6b35;
+		font-size: 0.9rem;
+		font-weight: bold;
+	}
+
+	.suggestion-buttons {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px;
+	}
+
+	.suggestion-btn {
+		background-color: #ff6b35;
+		color: white;
+		border: none;
+		padding: 6px 12px;
+		border-radius: 20px;
+		font-size: 0.85rem;
+		cursor: pointer;
+		transition: background-color 0.2s;
+	}
+
+	.suggestion-btn:hover {
+		background-color: #e55a2b;
 	}
 
 	.form-actions {
