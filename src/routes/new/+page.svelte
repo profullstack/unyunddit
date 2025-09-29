@@ -6,18 +6,18 @@
 </script>
 
 <svelte:head>
-	<title>UnyundIt - Anonymous Reddit Clone</title>
-	<meta name="description" content="Anonymous Reddit clone for the Tor network. Posts auto-delete after 36 hours." />
+	<title>New Posts - UnyundIt</title>
+	<meta name="description" content="Latest anonymous posts on UnyundIt" />
 </svelte:head>
 
 <main>
 	<header class="header">
-		<h1>🧅 UnyundIt</h1>
+		<h1>🧅 <a href="/">UnyundIt</a></h1>
 		<p class="tagline">Anonymous Reddit Clone - Posts disappear after 36 hours</p>
 		<nav class="nav">
-			<a href="/" class="nav-link active">Home</a>
+			<a href="/" class="nav-link">Home</a>
 			<a href="/submit" class="nav-link">Submit Post</a>
-			<a href="/new" class="nav-link">New</a>
+			<a href="/new" class="nav-link active">New</a>
 		</nav>
 	</header>
 
@@ -118,6 +118,11 @@
 		margin: 0;
 		font-size: 2.5rem;
 		color: #ff6b35;
+	}
+
+	.header h1 a {
+		color: inherit;
+		text-decoration: none;
 	}
 
 	.tagline {
