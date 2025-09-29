@@ -16,20 +16,52 @@ export async function load() {
 			console.error('Error fetching posts:', error);
 		}
 
-		// Fetch popular categories (ordered by post count)
+		// Fetch popular categories with actual post counts (real-time calculation)
 		const { data: categories, error: categoriesError } = await supabase
 			.from('categories')
-			.select('*')
-			.order('post_count', { ascending: false })
+			.select(`
+				*,
+				posts!inner(count)
+			`)
+			.order('posts.count', { ascending: false })
 			.limit(20);
 
-		if (categoriesError) {
-			console.error('Error fetching categories:', categoriesError);
+		// If the above query fails, fallback to getting categories with manual count
+		let finalCategories = categories;
+		if (categoriesError || !categories) {
+			console.error('Error with join query, using fallback:', categoriesError);
+			
+			// Get all categories first
+			const { data: allCategories } = await supabase
+				.from('categories')
+				.select('*');
+			
+			if (allCategories) {
+				// Get post counts for each category
+				const categoriesWithCounts = await Promise.all(
+					allCategories.map(async (category) => {
+						const { count } = await supabase
+							.from('posts')
+							.select('*', { count: 'exact', head: true })
+							.eq('category_id', category.id);
+						
+						return {
+							...category,
+							actual_post_count: count || 0
+						};
+					})
+				);
+				
+				// Sort by actual post count and limit to 20
+				finalCategories = categoriesWithCounts
+					.sort((a, b) => b.actual_post_count - a.actual_post_count)
+					.slice(0, 20);
+			}
 		}
 
 		return {
 			posts: posts || [],
-			popularCategories: categories || []
+			popularCategories: finalCategories || []
 		};
 	} catch (error) {
 		console.error('Unexpected error in load function:', error);
