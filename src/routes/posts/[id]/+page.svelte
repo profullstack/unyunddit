@@ -60,15 +60,6 @@
 </svelte:head>
 
 <main>
-	<header class="header">
-		<h1>🧅 <a href="/">Unyunddit</a></h1>
-		<nav class="nav">
-			<a href="/" class="nav-link">Home</a>
-			<a href="/submit" class="nav-link">Submit Post</a>
-			<a href="/new" class="nav-link">New</a>
-		</nav>
-	</header>
-
 	<section class="content">
 		<!-- Post Details using PostCard for consistency -->
 		<PostCard post={data.post} showVoting={true} linkToExternal={true} />
@@ -171,115 +162,6 @@
 		max-width: 800px;
 		margin: 0 auto;
 		padding: 20px;
-	}
-
-	.header {
-		text-align: center;
-		margin-bottom: 30px;
-		padding-bottom: 20px;
-		border-bottom: 1px solid #333;
-	}
-
-	.header h1 {
-		margin: 0;
-		font-size: 2.5rem;
-		color: #ff6b35;
-	}
-
-	.header h1 a {
-		color: inherit;
-		text-decoration: none;
-	}
-
-	.nav {
-		display: flex;
-		justify-content: center;
-		gap: 20px;
-		margin-top: 20px;
-	}
-
-	.nav-link {
-		color: #ccc;
-		text-decoration: none;
-		padding: 8px 16px;
-		border-radius: 4px;
-		transition: background-color 0.2s;
-	}
-
-	.nav-link:hover {
-		background-color: #333;
-	}
-
-	.post {
-		background-color: #2a2a2a;
-		border-radius: 8px;
-		padding: 20px;
-		margin-bottom: 30px;
-		border: 1px solid #333;
-	}
-
-	.post-title {
-		margin: 0 0 10px;
-		color: #ff6b35;
-		font-size: 1.5rem;
-	}
-
-	.post-meta {
-		display: flex;
-		gap: 15px;
-		margin-bottom: 15px;
-		font-size: 0.9rem;
-		color: #888;
-	}
-
-	
-
-	.post-url {
-		margin-bottom: 15px;
-	}
-
-	.external-link {
-		color: #4a9eff;
-		text-decoration: none;
-		word-break: break-all;
-	}
-
-	.external-link:hover {
-		text-decoration: underline;
-	}
-
-	.post-content {
-		margin-bottom: 20px;
-		white-space: pre-wrap;
-	}
-
-	.post-actions {
-		display: flex;
-		gap: 10px;
-	}
-
-	.vote-btn {
-		background: none;
-		border: 1px solid #444;
-		color: #ccc;
-		padding: 8px 12px;
-		border-radius: 4px;
-		cursor: pointer;
-		transition: all 0.2s;
-	}
-
-	.vote-btn:hover {
-		background-color: #333;
-	}
-
-	.upvote:hover {
-		color: #4a9eff;
-		border-color: #4a9eff;
-	}
-
-	.downvote:hover {
-		color: #ff6b6b;
-		border-color: #ff6b6b;
 	}
 
 	.comment-form-section, .comments-section {
@@ -432,25 +314,6 @@
 	@media (max-width: 600px) {
 		main {
 			padding: 10px;
-		}
-
-		.header h1 {
-			font-size: 2rem;
-		}
-
-		.nav {
-			flex-direction: column;
-			align-items: center;
-			gap: 10px;
-		}
-
-		.post, .comment-form-section, .comments-section {
-			padding: 15px;
-		}
-
-		.post-meta {
-			flex-direction: column;
-			gap: 5px;
 		}
 
 		.form-actions {
