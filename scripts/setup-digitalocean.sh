@@ -50,7 +50,7 @@ services:
   - key: NODE_ENV
     value: production
   - key: PORT
-    value: "3000"
+    value: "8080"
   - key: SUPABASE_URL
     value: YOUR_SUPABASE_URL
     type: SECRET

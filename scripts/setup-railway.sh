@@ -42,7 +42,7 @@ railway variables set SUPABASE_URL="$SUPABASE_URL"
 railway variables set SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY"
 railway variables set SUPABASE_SERVICE_ROLE_KEY="$SUPABASE_SERVICE_ROLE_KEY"
 railway variables set NODE_ENV="production"
-railway variables set PORT="3000"
+railway variables set PORT="8080"
 
 echo "✅ Environment variables configured"
 

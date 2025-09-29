@@ -20,7 +20,7 @@ value = "production"
 
 [[deploy.variables]]
 name = "PORT"
-value = "3000"
+value = "8080"
 
 # Supabase environment variables (set these in Railway dashboard)
 # SUPABASE_URL
