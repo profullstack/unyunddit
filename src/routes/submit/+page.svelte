@@ -58,6 +58,10 @@
 		<div class="submit-form">
 			<h2>Submit a New Post</h2>
 			<p class="info">Your post will be completely anonymous and will automatically delete after 36 hours.</p>
+			
+			<div class="content-policy">
+				<strong>⚠️ Content Policy:</strong> No CP allowed or sexual exploitation. Violations will be reported to authorities.
+			</div>
 
 			{#if form?.error}
 				<div class="error">
@@ -147,6 +151,7 @@
 			<div class="guidelines">
 				<h3>Posting Guidelines</h3>
 				<ul>
+					<li><strong>No CP allowed or sexual exploitation</strong> - violations will be reported</li>
 					<li>Posts are completely anonymous - no registration required</li>
 					<li>All posts automatically delete after 36 hours</li>
 					<li>Be respectful and follow basic internet etiquette</li>
@@ -230,7 +235,17 @@
 
 	.info {
 		color: #888;
-		margin-bottom: 30px;
+		margin-bottom: 20px;
+	}
+	
+	.content-policy {
+		background-color: #4a2c1a;
+		color: #ffcc99;
+		padding: 15px;
+		border-radius: 4px;
+		margin-bottom: 20px;
+		border: 1px solid #ff8c42;
+		font-size: 0.95rem;
 	}
 
 	.error {

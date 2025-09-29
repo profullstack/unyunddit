@@ -1,14 +1,9 @@
 #!/bin/sh
 
-# Start script for onion-ssr-boilerplate
-# Supports Railway and Digital Ocean deployment with Tor hidden service
-
-echo "=========================================="
-echo "🧅 ONION SSR BOILERPLATE STARTUP"
-echo "=========================================="
-
 # Debug volume mounting
+echo "=========================================="
 echo "🔍 VOLUME DEBUGGING"
+echo "=========================================="
 echo "Checking /var/lib/tor directory..."
 ls -la /var/lib/tor/ || echo "Directory doesn't exist yet"
 echo "Checking for existing hidden service..."
@@ -29,12 +24,12 @@ ls -la /var/lib/tor/hidden_service/ || echo "Hidden service directory is empty (
 echo "=========================================="
 
 # Start Tor in the background
-echo "🔄 Starting Tor with SOCKS proxy..."
+echo "Starting Tor with SOCKS proxy..."
 tor -f /etc/tor/torrc &
 TOR_PID=$!
 
 # Wait for Tor to initialize and check SOCKS proxy
-echo "⏳ Waiting for Tor SOCKS proxy to be ready..."
+echo "Waiting for Tor SOCKS proxy to be ready..."
 for i in {1..30}; do
     if nc -z 127.0.0.1 9050; then
         echo "✅ Tor SOCKS proxy is ready on port 9050"
@@ -55,13 +50,12 @@ else
     echo "✅ Tor SOCKS proxy confirmed working on 127.0.0.1:9050"
 fi
 
-# Wait for hidden service to be ready
-echo "⏳ Waiting for hidden service initialization..."
-sleep 10
+# Wait a bit more for hidden service
+sleep 5
 
-# Get the onion address
+# Get the onion address and inject it into the app
 echo "=========================================="
-echo "🧅 TOR HIDDEN SERVICE STATUS"
+echo "🧅 TOR HIDDEN SERVICE INITIALIZATION"
 echo "=========================================="
 
 if [ -f /var/lib/tor/hidden_service/hostname ]; then
@@ -72,10 +66,13 @@ if [ -f /var/lib/tor/hidden_service/hostname ]; then
     echo "🌐 Your .onion address: ${ONION_URL}"
     echo "🔗 Full URL: ${PUBLIC_ONION_URL}"
     echo "📋 Share this URL for anonymous access"
-    echo "🔒 This is your permanent .onion address"
+    
+    # Inject onion URL into the built app
+    echo "window.PUBLIC_ONION_URL = '${PUBLIC_ONION_URL}';" > /app/build/client/_app/onion-config.js
+    echo "✅ Onion URL injected into application"
 else
     echo "⏳ Waiting for Tor to generate onion address..."
-    sleep 15
+    sleep 10
     if [ -f /var/lib/tor/hidden_service/hostname ]; then
         ONION_URL=$(cat /var/lib/tor/hidden_service/hostname)
         export PUBLIC_ONION_URL="http://${ONION_URL}"
@@ -84,27 +81,27 @@ else
         echo "🌐 Your .onion address: ${ONION_URL}"
         echo "🔗 Full URL: ${PUBLIC_ONION_URL}"
         echo "📋 Share this URL for anonymous access"
-        echo "🔒 This is your permanent .onion address"
+        
+        # Inject onion URL into the built app
+        echo "window.PUBLIC_ONION_URL = '${PUBLIC_ONION_URL}';" > /app/build/client/_app/onion-config.js
+        echo "✅ Onion URL injected into application"
     else
         echo "⚠️  WARNING: Tor onion address not yet generated!"
         echo "🔍 Check Tor logs for issues"
-        echo "📝 The service will still start, but .onion access may not be available"
         export PUBLIC_ONION_URL=""
+        echo "window.PUBLIC_ONION_URL = '';" > /app/build/client/_app/onion-config.js
     fi
 fi
 
 echo "=========================================="
 
-# Start the Node.js application
-echo "🚀 Starting SvelteKit application on port ${PORT:-3000}..."
-echo "🔧 Environment: ${NODE_ENV:-production}"
-echo "🗄️ Database: Supabase"
-echo "🛡️ Security: SSR-only mode with strict CSP"
+# Start the Node.js application with the onion URL available
+echo "🚀 Starting SvelteKit application on port 8080..."
 echo "=========================================="
 
-# Start the app in background and monitor
+# Start the app in background and monitor onion URL
 cd /app
-node build/index.js &
+PORT=8080 node build/index.js &
 APP_PID=$!
 
 # Function to display onion URL periodically
@@ -119,11 +116,7 @@ display_onion_info() {
             echo "🔗 Full URL: http://${CURRENT_ONION}"
             echo "📋 Share this URL for anonymous access"
             echo "⏰ $(date)"
-            echo "🔧 App PID: ${APP_PID}"
-            echo "🔧 Tor PID: ${TOR_PID}"
             echo "=========================================="
-        else
-            echo "⚠️  Tor hidden service not ready yet..."
         fi
     done
 }
@@ -131,18 +124,6 @@ display_onion_info() {
 # Start periodic display in background
 display_onion_info &
 MONITOR_PID=$!
-
-# Cleanup function
-cleanup() {
-    echo "🛑 Shutting down services..."
-    kill $APP_PID 2>/dev/null
-    kill $TOR_PID 2>/dev/null
-    kill $MONITOR_PID 2>/dev/null
-    exit 0
-}
-
-# Set up signal handlers
-trap cleanup SIGTERM SIGINT
 
 # Wait for the main app process
 wait $APP_PID

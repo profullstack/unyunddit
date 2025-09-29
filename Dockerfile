@@ -55,22 +55,20 @@ RUN pnpm install --prod --no-frozen-lockfile
 # Copy tor configuration
 COPY docker/torrc /etc/tor/torrc
 
-# Create tor data directory and log directory
+# Create tor data directory
 RUN mkdir -p /var/lib/tor/hidden_service && \
-    mkdir -p /var/log/tor && \
-    chown -R tor:tor /var/lib/tor && \
-    chown -R tor:tor /var/log/tor
+    chown -R tor:tor /var/lib/tor
 
 # Copy and set up start script
 COPY docker/start.sh /start.sh
 RUN chmod +x /start.sh
 
-# Expose port (Railway uses PORT env var, defaults to 3000)
-EXPOSE 3000
+# Expose port
+EXPOSE 8080
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-  CMD nc -z 127.0.0.1 ${PORT:-3000} || exit 1
+  CMD nc -z 127.0.0.1 8080 || exit 1
 
 # Start the application with Tor
 CMD ["/start.sh"]
