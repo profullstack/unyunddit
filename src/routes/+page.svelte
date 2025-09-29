@@ -64,7 +64,7 @@
 										</a>
 										<span class="domain">({new URL(post.url).hostname})</span>
 									{:else}
-										<a href="/post/{post.id}" class="post-link">{post.title}</a>
+										<a href="/posts/{post.id}" class="post-link">{post.title}</a>
 									{/if}
 								</h3>
 								
@@ -86,8 +86,8 @@
 											minute: '2-digit'
 										})}
 									</span>
-									<a href="/post/{post.id}" class="comments-link">
-										{post.comment_count} comment{post.comment_count !== 1 ? 's' : ''}
+									<a href="/posts/{post.id}" class="comments-link">
+										{post.comment_count || 0} comment{(post.comment_count || 0) !== 1 ? 's' : ''}
 									</a>
 									<span class="expires">
 										Expires: {new Date(post.expires_at).toLocaleString('en-US', {
