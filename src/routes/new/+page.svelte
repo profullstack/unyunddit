@@ -40,13 +40,12 @@
 						
 						<div class="post-content">
 							<h2 class="post-title">
+								<a href="/posts/{post.id}" class="post-link">{post.title}</a>
 								{#if post.url}
-									<a href={post.url} target="_blank" rel="noopener noreferrer" class="external-link">
-										{post.title}
+									<a href={post.url} target="_blank" rel="noopener noreferrer" class="external-icon" title="Open external link">
+										↗
 									</a>
 									<span class="domain">({new URL(post.url).hostname})</span>
-								{:else}
-									<a href="/post/{post.id}" class="post-link">{post.title}</a>
 								{/if}
 							</h2>
 							
@@ -228,6 +227,21 @@
 	.post-link:hover,
 	.external-link:hover {
 		color: #ff6b35;
+	}
+
+	.external-icon {
+		color: #888;
+		text-decoration: none;
+		font-size: 0.8rem;
+		margin-left: 6px;
+		padding: 2px 4px;
+		border-radius: 2px;
+		transition: color 0.2s, background-color 0.2s;
+	}
+
+	.external-icon:hover {
+		color: #ff6b35;
+		background-color: #333;
 	}
 
 	.domain {
