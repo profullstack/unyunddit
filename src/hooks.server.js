@@ -3,8 +3,21 @@
 
 /** @type {import('@sveltejs/kit').Handle} */
 export async function handle({ event, resolve }) {
+	// Log incoming requests for Tor debugging
+	const startTime = Date.now();
+	const clientIP = event.getClientAddress();
+	const userAgent = event.request.headers.get('user-agent') || 'Unknown';
+	const method = event.request.method;
+	const url = event.url.pathname + event.url.search;
+	
+	console.log(`[REQUEST] ${method} ${url} - IP: ${clientIP} - UA: ${userAgent.substring(0, 100)}`);
+	
 	// Resolve the request
 	const response = await resolve(event);
+	
+	// Log response
+	const duration = Date.now() - startTime;
+	console.log(`[RESPONSE] ${method} ${url} - ${response.status} - ${duration}ms`);
 
 	// Set strict security headers for .onion websites
 	response.headers.set(

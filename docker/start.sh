@@ -24,10 +24,22 @@ ls -la /var/lib/tor/hidden_service/ || echo "Hidden service directory is empty (
 echo "=========================================="
 
 # Start Tor in the background with logs to stdout
-echo "Starting Tor with SOCKS proxy..."
-echo "📋 Tor logs will be visible in Railway logs"
-tor -f /etc/tor/torrc 2>&1 | sed 's/^/[TOR] /' &
+echo "=========================================="
+echo "🔧 STARTING TOR HIDDEN SERVICE"
+echo "=========================================="
+echo "📋 Tor logs will be visible in Railway logs with [TOR] prefix"
+echo "🔍 Tor config: /etc/tor/torrc"
+echo "📁 Hidden service dir: /var/lib/tor/hidden_service/"
+
+# Start Tor with explicit logging to stdout
+echo "[TOR] Starting Tor daemon..."
+(tor -f /etc/tor/torrc 2>&1 | while IFS= read -r line; do
+    echo "[TOR] $line"
+done) &
 TOR_PID=$!
+
+echo "🔧 Tor started with PID: $TOR_PID"
+echo "=========================================="
 
 # Wait for Tor to initialize and check SOCKS proxy
 echo "Waiting for Tor SOCKS proxy to be ready..."
