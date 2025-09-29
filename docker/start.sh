@@ -80,6 +80,28 @@ if [ -f /var/lib/tor/hidden_service/hostname ]; then
     echo "🔗 Full URL: ${PUBLIC_ONION_URL}"
     echo "📋 Share this URL for anonymous access"
     
+    # Test hidden service connectivity
+    echo "🔍 Testing hidden service connectivity..."
+    echo "📡 Checking if port 8080 is accessible..."
+    if nc -z 127.0.0.1 8080; then
+        echo "✅ Port 8080 is accessible"
+    else
+        echo "❌ Port 8080 is NOT accessible"
+    fi
+    
+    # Check hidden service files
+    echo "📁 Hidden service files:"
+    ls -la /var/lib/tor/hidden_service/
+    
+    # Test if we can reach our own hidden service (this tests the full Tor circuit)
+    echo "🔄 Testing hidden service reachability..."
+    if command -v curl >/dev/null 2>&1; then
+        echo "📡 Testing HTTP request to hidden service via Tor..."
+        timeout 30 curl --socks5-hostname 127.0.0.1:9050 -s -o /dev/null -w "HTTP Status: %{http_code}\n" "${PUBLIC_ONION_URL}/" || echo "❌ Hidden service test failed"
+    else
+        echo "⚠️ curl not available for hidden service testing"
+    fi
+    
     # Inject onion URL into the built app
     echo "window.PUBLIC_ONION_URL = '${PUBLIC_ONION_URL}';" > /app/build/client/_app/onion-config.js
     echo "✅ Onion URL injected into application"
@@ -114,7 +136,8 @@ echo "=========================================="
 
 # Start the app in background and monitor onion URL
 cd /app
-PORT=8080 node build/index.js &
+echo "🚀 Starting Node.js app with stderr logging..."
+PORT=8080 node build/index.js 2>&1 | sed 's/^/[APP] /' &
 APP_PID=$!
 
 # Function to display onion URL periodically
