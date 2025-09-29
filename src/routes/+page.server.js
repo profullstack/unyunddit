@@ -79,7 +79,13 @@ export const actions = {
 				return fail(400, { error: 'Post ID is required' });
 			}
 
-			const ipHash = hashIP(getClientAddress());
+			// Get real client IP, handling Tor proxy headers
+			const forwardedFor = request.headers.get('x-forwarded-for');
+			const realIP = request.headers.get('x-real-ip');
+			const clientIP = forwardedFor?.split(',')[0]?.trim() || realIP || getClientAddress();
+			const ipHash = hashIP(clientIP);
+			
+			console.log(`Vote request from IP: ${clientIP} (hash: ${ipHash.substring(0, 8)}...)`);
 
 			// Check if user already voted on this post
 			const { data: existingVote, error: voteCheckError } = await supabase
@@ -163,7 +169,13 @@ export const actions = {
 				return fail(400, { error: 'Post ID is required' });
 			}
 
-			const ipHash = hashIP(getClientAddress());
+			// Get real client IP, handling Tor proxy headers
+			const forwardedFor = request.headers.get('x-forwarded-for');
+			const realIP = request.headers.get('x-real-ip');
+			const clientIP = forwardedFor?.split(',')[0]?.trim() || realIP || getClientAddress();
+			const ipHash = hashIP(clientIP);
+			
+			console.log(`Vote request from IP: ${clientIP} (hash: ${ipHash.substring(0, 8)}...)`);
 
 			// Check if user already voted on this post
 			const { data: existingVote, error: voteCheckError } = await supabase

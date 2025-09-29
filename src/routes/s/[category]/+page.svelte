@@ -1,6 +1,6 @@
 <script>
 	import PostCard from '$lib/components/PostCard.svelte';
-	
+
 	/** @type {import('./$types').PageData} */
 	export let data;
 </script>
@@ -11,15 +11,6 @@
 </svelte:head>
 
 <main>
-	<header class="header">
-		<h1>🧅 <a href="/">Unyunddit</a></h1>
-		<nav class="nav">
-			<a href="/" class="nav-link">Home</a>
-			<a href="/submit" class="nav-link">Submit Post</a>
-			<a href="/new" class="nav-link">New</a>
-		</nav>
-	</header>
-
 	<section class="content">
 		<div class="category-header">
 			<h2>s/{data.category.slug}</h2>
@@ -40,7 +31,8 @@
 		{:else}
 			<div class="posts">
 				{#each data.posts as post}
-				<PostCard {post} showVoting={true} votingAction="/" />				{/each}
+					<PostCard {post} showVoting={true} votingAction="/" />
+				{/each}
 			</div>
 
 			{#if data.hasMore}
@@ -69,44 +61,6 @@
 		margin: 0 auto;
 		padding: 20px;
 	}
-
-	.header {
-		text-align: center;
-		margin-bottom: 30px;
-		padding-bottom: 20px;
-		border-bottom: 1px solid #333;
-	}
-
-	.header h1 {
-		margin: 0;
-		font-size: 2.5rem;
-		color: #ff6b35;
-	}
-
-	.header h1 a {
-		color: inherit;
-		text-decoration: none;
-	}
-
-	.nav {
-		display: flex;
-		justify-content: center;
-		gap: 20px;
-		margin-top: 20px;
-	}
-
-	.nav-link {
-		color: #ccc;
-		text-decoration: none;
-		padding: 8px 16px;
-		border-radius: 4px;
-		transition: background-color 0.2s;
-	}
-
-	.nav-link:hover {
-		background-color: #333;
-	}
-
 	.category-header {
 		background-color: #2a2a2a;
 		border-radius: 8px;
@@ -145,29 +99,6 @@
 		margin-bottom: 20px;
 	}
 
-	.submit-link {
-		color: #ff6b35;
-		text-decoration: none;
-		font-weight: bold;
-		padding: 10px 20px;
-		border: 1px solid #ff6b35;
-		border-radius: 4px;
-		transition: background-color 0.2s;
-	}
-
-	.submit-link:hover {
-		background-color: #ff6b35;
-		color: white;
-	}
-
-	.posts {
-		display: flex;
-		flex-direction: column;
-		gap: 15px;
-	}
-
-	
-
 	.pagination {
 		text-align: center;
 		margin-top: 30px;
@@ -191,17 +122,5 @@
 		main {
 			padding: 10px;
 		}
-
-		.header h1 {
-			font-size: 2rem;
-		}
-
-		.nav {
-			flex-direction: column;
-			align-items: center;
-			gap: 10px;
-		}
-
-		
 	}
 </style>

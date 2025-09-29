@@ -74,8 +74,14 @@
 		{/if}
 		
 		<div class="post-meta">
+			{#if post.categories}
+				<a href="/s/{post.categories.slug}" class="category-link">
+					{post.categories.name}
+				</a>
+				<span class="separator">•</span>
+			{/if}
 			<span class="time">
-				{showVoting 
+				{showVoting
 					? new Date(post.created_at).toLocaleString('en-US', {
 						year: 'numeric',
 						month: 'short',
@@ -237,6 +243,21 @@
 
 	.comments-link:hover {
 		color: #ff6b35;
+	}
+
+	.category-link {
+		color: #ff6b35;
+		text-decoration: none;
+		font-weight: bold;
+		font-size: 0.85rem;
+		padding: 2px 6px;
+		border-radius: 3px;
+		background-color: rgba(255, 107, 53, 0.1);
+		transition: background-color 0.2s;
+	}
+
+	.category-link:hover {
+		background-color: rgba(255, 107, 53, 0.2);
 	}
 
 	.discussion-icon {

@@ -5,7 +5,12 @@
 export async function handle({ event, resolve }) {
 	// Log incoming requests for Tor debugging
 	const startTime = Date.now();
-	const clientIP = event.getClientAddress();
+	
+	// Get real client IP, handling Tor proxy headers
+	const forwardedFor = event.request.headers.get('x-forwarded-for');
+	const realIP = event.request.headers.get('x-real-ip');
+	const clientIP = forwardedFor?.split(',')[0]?.trim() || realIP || event.getClientAddress();
+	
 	const userAgent = event.request.headers.get('user-agent') || 'Unknown';
 	const method = event.request.method;
 	const url = event.url.pathname + event.url.search;
