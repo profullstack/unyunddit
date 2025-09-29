@@ -11,6 +11,7 @@
 	let url = form?.url || '';
 	let content = form?.content || '';
 	let selectedCategoryId = form?.categoryId || '';
+	/** @type {Array<{id: number, name: string, slug: string}>} */
 	let suggestedCategories = [];
 	let showSuggestions = false;
 	
@@ -33,6 +34,9 @@
 		updateSuggestions();
 	}
 	
+	/**
+	 * @param {number} categoryId
+	 */
 	function selectSuggestedCategory(categoryId) {
 		selectedCategoryId = categoryId.toString();
 		showSuggestions = false;
