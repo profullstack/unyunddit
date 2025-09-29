@@ -1,6 +1,7 @@
 <script>
 	import { enhance } from '$app/forms';
 	import { page } from '$app/stores';
+	import PostCard from '$lib/components/PostCard.svelte';
 	
 	/** @type {import('./$types').PageData} */
 	export let data;
@@ -9,12 +10,12 @@
 	export let form;
 	
 	let commentContent = '';
-	/** @type {number | null} */
+	/** @type {string | null} */
 	let replyingTo = null;
 	let replyContent = '';
 	
 	/**
-	 * @param {number} commentId
+	 * @param {string} commentId
 	 */
 	function startReply(commentId) {
 		replyingTo = commentId;
@@ -69,51 +70,8 @@
 	</header>
 
 	<section class="content">
-		<!-- Post Details -->
-		<article class="post">
-			<div class="post-header">
-				<h2 class="post-title">{data.post.title}</h2>
-				<div class="post-meta">
-					{#if data.post.categories}
-						<span class="category">
-							<a href="/s/{data.post.categories.slug}">{data.post.categories.name}</a>
-						</span>
-					{/if}
-					<span class="post-time">{formatDate(data.post.created_at)}</span>
-					<span class="comment-count">{data.post.comment_count || 0} comments</span>
-				</div>
-			</div>
-
-			{#if data.post.url}
-				<div class="post-url">
-					<a href={data.post.url} target="_blank" rel="noopener noreferrer" class="external-link">
-						{data.post.url}
-					</a>
-				</div>
-			{/if}
-
-			{#if data.post.content}
-				<div class="post-content">
-					{data.post.content}
-				</div>
-			{/if}
-
-			<!-- Voting -->
-			<div class="post-actions">
-				<form method="POST" action="?/vote" use:enhance>
-					<input type="hidden" name="vote" value="up" />
-					<button type="submit" class="vote-btn upvote">
-						▲ {data.post.upvotes || 0}
-					</button>
-				</form>
-				<form method="POST" action="?/vote" use:enhance>
-					<input type="hidden" name="vote" value="down" />
-					<button type="submit" class="vote-btn downvote">
-						▼ {data.post.downvotes || 0}
-					</button>
-				</form>
-			</div>
-		</article>
+		<!-- Post Details using PostCard for consistency -->
+		<PostCard post={data.post} showVoting={true} />
 
 		<!-- Comment Form -->
 		<section class="comment-form-section">

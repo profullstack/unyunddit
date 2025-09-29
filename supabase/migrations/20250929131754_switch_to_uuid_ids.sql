@@ -220,3 +220,66 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER trigger_update_vote_counts
     AFTER INSERT OR UPDATE OR DELETE ON public.votes
     FOR EACH ROW EXECUTE FUNCTION update_vote_counts();
+
+-- Update the get_post_comments function to work with UUIDs
+DROP FUNCTION IF EXISTS get_post_comments(BIGINT);
+
+CREATE OR REPLACE FUNCTION get_post_comments(post_id_param UUID)
+RETURNS TABLE (
+    id UUID,
+    post_id UUID,
+    parent_id UUID,
+    content TEXT,
+    upvotes INTEGER,
+    downvotes INTEGER,
+    depth INTEGER,
+    author_ip TEXT,
+    created_at TIMESTAMP WITH TIME ZONE,
+    expires_at TIMESTAMP WITH TIME ZONE
+) AS $$
+BEGIN
+    RETURN QUERY
+    WITH RECURSIVE comment_tree AS (
+        -- Base case: top-level comments (no parent)
+        SELECT
+            c.id,
+            c.post_id,
+            c.parent_id,
+            c.content,
+            c.upvotes,
+            c.downvotes,
+            c.depth,
+            c.author_ip,
+            c.created_at,
+            c.expires_at
+        FROM public.comments c
+        WHERE c.post_id = post_id_param
+        AND c.parent_id IS NULL
+        AND c.expires_at > timezone('utc'::text, now())
+        
+        UNION ALL
+        
+        -- Recursive case: child comments
+        SELECT
+            c.id,
+            c.post_id,
+            c.parent_id,
+            c.content,
+            c.upvotes,
+            c.downvotes,
+            c.depth,
+            c.author_ip,
+            c.created_at,
+            c.expires_at
+        FROM public.comments c
+        INNER JOIN comment_tree ct ON c.parent_id = ct.id
+        WHERE c.expires_at > timezone('utc'::text, now())
+    )
+    SELECT * FROM comment_tree
+    ORDER BY created_at ASC;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Grant execute permission on the updated function
+GRANT EXECUTE ON FUNCTION get_post_comments(UUID) TO anon;
+GRANT EXECUTE ON FUNCTION get_post_comments(UUID) TO authenticated;
