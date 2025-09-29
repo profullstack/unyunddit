@@ -12,7 +12,11 @@ const config = {
 			precompress: false,
 			// Environment variable prefix
 			envPrefix: ''
-		})
+		}),
+		// Disable CSRF protection for no-JS environment
+		csrf: {
+			checkOrigin: false
+		}
 	}
 };
 
