@@ -232,14 +232,7 @@
 		color: #888;
 	}
 
-	.category a {
-		color: #ff6b35;
-		text-decoration: none;
-	}
-
-	.category a:hover {
-		text-decoration: underline;
-	}
+	
 
 	.post-url {
 		margin-bottom: 15px;

@@ -9,13 +9,13 @@
 
 <svelte:head>
 	<title>Unyunddit - Anonymous Reddit Clone</title>
-	<meta name="description" content="Anonymous Reddit clone for the Tor network. Posts auto-delete after 36 hours." />
+	<meta name="description" content="Anonymous Reddit clone for the Tor network. Posts auto-delete after 72 hours." />
 </svelte:head>
 
 <main>
 	<header class="header">
 		<h1>🧅 Unyunddit</h1>
-		<p class="tagline">Anonymous Reddit Clone - Posts disappear after 36 hours</p>
+		<p class="tagline">Anonymous Reddit Clone - Posts disappear after 72 hours</p>
 		<nav class="nav">
 			<a href="/" class="nav-link active">Home</a>
 			<a href="/submit" class="nav-link">Submit Post</a>
@@ -170,121 +170,7 @@
 		gap: 15px;
 	}
 
-	.post {
-		display: flex;
-		background-color: #2a2a2a;
-		border-radius: 8px;
-		padding: 15px;
-		border: 1px solid #333;
-	}
-
-	.post-votes {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		margin-right: 15px;
-		min-width: 40px;
-	}
-
-	.vote-form {
-		margin: 0;
-	}
-
-	.vote-btn {
-		background: none;
-		border: none;
-		color: #888;
-		font-size: 1.2rem;
-		cursor: pointer;
-		padding: 4px 8px;
-		border-radius: 2px;
-		transition: color 0.2s;
-	}
-
-	.vote-btn:hover {
-		background-color: #333;
-	}
-
-	.upvote:hover {
-		color: #ff6b35;
-	}
-
-	.downvote:hover {
-		color: #6b9eff;
-	}
-
-	.score {
-		font-weight: bold;
-		margin: 4px 0;
-		color: #ccc;
-	}
-
-	.post-content {
-		flex: 1;
-	}
-
-	.post-title {
-		margin: 0 0 10px;
-		font-size: 1.2rem;
-		line-height: 1.3;
-	}
-
-	.post-link,
-	.external-link {
-		color: #e0e0e0;
-		text-decoration: none;
-	}
-
-	.post-link:hover,
-	.external-link:hover {
-		color: #ff6b35;
-	}
-
-	.external-icon {
-		color: #888;
-		text-decoration: none;
-		font-size: 0.8rem;
-		margin-left: 6px;
-		padding: 2px 4px;
-		border-radius: 2px;
-		transition: color 0.2s, background-color 0.2s;
-	}
-
-	.external-icon:hover {
-		color: #ff6b35;
-		background-color: #333;
-	}
-
-	.domain {
-		color: #888;
-		font-size: 0.9rem;
-		margin-left: 8px;
-	}
-
-	.post-text {
-		margin: 10px 0;
-		color: #ccc;
-		white-space: pre-wrap;
-		word-wrap: break-word;
-		line-height: 1.5;
-	}
-
-	.post-meta {
-		display: flex;
-		gap: 15px;
-		font-size: 0.9rem;
-		color: #888;
-		margin-top: 10px;
-	}
-
-	.comments-link {
-		color: #888;
-		text-decoration: none;
-	}
-
-	.comments-link:hover {
-		color: #ff6b35;
-	}
+	
 
 	.empty-state {
 		text-align: center;
@@ -330,13 +216,6 @@
 			padding: 12px;
 		}
 
-		.post {
-			padding: 10px;
-		}
-
-		.post-meta {
-			flex-direction: column;
-			gap: 5px;
-		}
+		
 	}
 </style>

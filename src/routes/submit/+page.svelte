@@ -61,7 +61,7 @@
 	<section class="content">
 		<div class="submit-form">
 			<h2>Submit a New Post</h2>
-			<p class="info">Your post will be completely anonymous and will automatically delete after 36 hours.</p>
+			<p class="info">Your post will be completely anonymous and will automatically delete after 72 hours.</p>
 			
 			<div class="content-policy">
 				<strong>⚠️ Content Policy:</strong> No CP allowed or sexual exploitation. Violations will be reported to authorities.
@@ -157,7 +157,7 @@
 				<ul>
 					<li><strong>No CP allowed or sexual exploitation</strong> - violations will be reported</li>
 					<li>Posts are completely anonymous - no registration required</li>
-					<li>All posts automatically delete after 36 hours</li>
+					<li>All posts automatically delete after 72 hours</li>
 					<li>Be respectful and follow basic internet etiquette</li>
 					<li>You can submit either a link, text, or both</li>
 					<li>Voting is anonymous and based on IP address</li>

@@ -1,4 +1,4 @@
-eimport { supabase } from '$lib/supabase.js';
+import { supabase } from '$lib/supabase.js';
 import { fail } from '@sveltejs/kit';
 import { createHash } from 'crypto';
 

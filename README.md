@@ -1,11 +1,11 @@
 # Unyunddit - Anonymous Reddit Clone
 
-A completely anonymous Reddit clone designed for the Tor network with automatic post deletion after 36 hours. Built with SvelteKit and Supabase, featuring server-side rendering only (no client-side JavaScript) for maximum privacy and security.
+A completely anonymous Reddit clone designed for the Tor network with automatic post deletion after 72 hours. Built with SvelteKit and Supabase, featuring server-side rendering only (no client-side JavaScript) for maximum privacy and security.
 
 ## Features
 
 - **Complete Anonymity**: No user accounts, registration, or tracking
-- **Auto-Deletion**: All posts and comments automatically delete after 36 hours
+- **Auto-Deletion**: All posts and comments automatically delete after 72 hours
 - **Tor-Optimized**: Designed specifically for .onion websites
 - **Server-Side Only**: No client-side JavaScript for enhanced security
 - **Anonymous Voting**: IP-based voting system with hashed IPs for privacy
@@ -108,7 +108,7 @@ The application uses three main tables:
 - No tracking or analytics
 
 ### Automatic Cleanup
-- Posts and comments auto-delete after 36 hours
+- Posts and comments auto-delete after 72 hours
 - Automated cleanup via PostgreSQL cron jobs
 - Cascading deletes for related data
 
@@ -213,7 +213,7 @@ This project is licensed under the WTFPL License - see the [LICENSE](LICENSE) fi
 This application is designed for maximum privacy:
 - No personal data is collected or stored
 - IP addresses are only used for voting (hashed with SHA256)
-- All content automatically deletes after 36 hours
+- All content automatically deletes after 72 hours
 - No tracking, analytics, or third-party services
 - Designed for use on the Tor network
 

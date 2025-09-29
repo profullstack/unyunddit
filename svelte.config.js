@@ -15,7 +15,7 @@ const config = {
 		}),
 		// Disable CSRF protection for no-JS environment
 		csrf: {
-			checkOrigin: false
+			trustedOrigins: ['*']
 		}
 	}
 };

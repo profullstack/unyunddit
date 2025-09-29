@@ -3,10 +3,6 @@
 	export let post;
 	/** @type {boolean} */
 	export let showVoting = false;
-	/** @type {string} */
-	export let votingAction = '/';
-	/** @type {boolean} */
-	export let isPostPage = false;
 
 	function getDomain(url) {
 		if (!url) return '';
