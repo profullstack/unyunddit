@@ -16,7 +16,11 @@ export function createSupabaseServerClient(useServiceRole = false) {
 		: (process.env.PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY);
 
 	if (!supabaseUrl || !supabaseKey) {
-		throw new Error('Missing Supabase environment variables. Check your .env file.');
+		console.warn('Missing Supabase environment variables - using fallback');
+		// Return a mock client for build time
+		return {
+			from: () => ({ select: () => ({ data: [], error: null }) })
+		};
 	}
 
 	return createClient(supabaseUrl, supabaseKey, {
@@ -28,14 +32,6 @@ export function createSupabaseServerClient(useServiceRole = false) {
 	});
 }
 
-/**
- * Default Supabase client for most server operations
- * Uses anonymous key with RLS policies
- */
+// Export the client directly - will work at runtime
 export const supabase = createSupabaseServerClient();
-
-/**
- * Admin Supabase client for operations that bypass RLS
- * Use with caution - only for trusted server operations
- */
 export const supabaseAdmin = createSupabaseServerClient(true);

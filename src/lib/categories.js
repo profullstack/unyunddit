@@ -1,4 +1,4 @@
-import { supabase } from './supabase.js';
+import { createSupabaseServerClient } from './supabase.js';
 
 /**
  * URL patterns for category matching
@@ -234,10 +234,11 @@ export function suggestCategories({ url, title } = {}) {
 
 /**
  * Get all categories from the database
- * @returns {Promise<Array>} Array of category objects
+ * @returns {Promise<Array<Object>>} Array of category objects
  */
 export async function getAllCategories() {
   try {
+    const supabase = createSupabaseServerClient();
     const { data, error } = await supabase
       .from('categories')
       .select('*')
@@ -258,7 +259,7 @@ export async function getAllCategories() {
 /**
  * Get a category by its slug
  * @param {string} slug - The category slug
- * @returns {Promise<Object|null>} Category object or null if not found
+ * @returns {Promise<{id: number, name: string, slug: string}|null>} Category object or null if not found
  */
 export async function getCategoryBySlug(slug) {
   if (!slug || typeof slug !== 'string') {
@@ -266,6 +267,7 @@ export async function getCategoryBySlug(slug) {
   }
 
   try {
+    const supabase = createSupabaseServerClient();
     const { data, error } = await supabase
       .from('categories')
       .select('*')
@@ -309,6 +311,7 @@ export async function getPostsByCategory(slug, { limit = 20, offset = 0 } = {}) 
     }
 
     // Then get posts for this category
+    const supabase = createSupabaseServerClient();
     const { data: posts, error } = await supabase
       .from('posts')
       .select('*')
