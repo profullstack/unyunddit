@@ -154,11 +154,32 @@ export const actions = {
 				console.log('New upvote added successfully');
 			}
 
-			// Manually update post vote counts since triggers might not be working with UUIDs
-			const { error: updateError } = await supabase.rpc('refresh_post_vote_counts', { post_id_param: postId });
+			// Manually update post vote counts by counting votes directly
+			const { count: upvoteCount } = await supabase
+				.from('votes')
+				.select('*', { count: 'exact', head: true })
+				.eq('post_id', postId)
+				.eq('vote_type', 'up');
+				
+			const { count: downvoteCount } = await supabase
+				.from('votes')
+				.select('*', { count: 'exact', head: true })
+				.eq('post_id', postId)
+				.eq('vote_type', 'down');
+				
+			const { error: updateError } = await supabase
+				.from('posts')
+				.update({
+					upvotes: upvoteCount || 0,
+					downvotes: downvoteCount || 0
+				})
+				.eq('id', postId);
+				
 			if (updateError) {
 				console.error('Error updating vote counts:', updateError);
 				// Don't fail the request, just log the error
+			} else {
+				console.log(`Updated post ${postId} vote counts: ${upvoteCount || 0} upvotes, ${downvoteCount || 0} downvotes`);
 			}
 		} catch (error) {
 			console.error('Unexpected error in upvote action:', error);
@@ -241,11 +262,32 @@ export const actions = {
 				}
 			}
 
-			// Manually update post vote counts since triggers might not be working with UUIDs
-			const { error: updateError } = await supabase.rpc('refresh_post_vote_counts', { post_id_param: postId });
+			// Manually update post vote counts by counting votes directly
+			const { count: upvoteCount } = await supabase
+				.from('votes')
+				.select('*', { count: 'exact', head: true })
+				.eq('post_id', postId)
+				.eq('vote_type', 'up');
+				
+			const { count: downvoteCount } = await supabase
+				.from('votes')
+				.select('*', { count: 'exact', head: true })
+				.eq('post_id', postId)
+				.eq('vote_type', 'down');
+				
+			const { error: updateError } = await supabase
+				.from('posts')
+				.update({
+					upvotes: upvoteCount || 0,
+					downvotes: downvoteCount || 0
+				})
+				.eq('id', postId);
+				
 			if (updateError) {
 				console.error('Error updating vote counts:', updateError);
 				// Don't fail the request, just log the error
+			} else {
+				console.log(`Updated post ${postId} vote counts: ${upvoteCount || 0} upvotes, ${downvoteCount || 0} downvotes`);
 			}
 		} catch (error) {
 			console.error('Unexpected error in downvote action:', error);

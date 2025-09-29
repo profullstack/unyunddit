@@ -33,6 +33,19 @@ export function createSupabaseServerClient(useServiceRole = false) {
 			// Disable auth for server-side operations
 			autoRefreshToken: false,
 			persistSession: false
+		},
+		// Disable caching to ensure fresh data
+		realtime: {
+			params: {
+				eventsPerSecond: 10
+			}
+		},
+		global: {
+			headers: {
+				'Cache-Control': 'no-cache, no-store, must-revalidate',
+				'Pragma': 'no-cache',
+				'Expires': '0'
+			}
 		}
 	});
 }

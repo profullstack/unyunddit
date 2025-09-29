@@ -1,4 +1,4 @@
-import { createSupabaseServerClient } from './supabase.js';
+import { createSupabaseServerClient, supabase } from './supabase.js';
 
 /**
  * URL patterns for category matching
@@ -310,8 +310,7 @@ export async function getPostsByCategory(slug, { limit = 20, offset = 0 } = {}) 
       return { posts: [], category: null };
     }
 
-    // Then get posts for this category
-    const supabase = createSupabaseServerClient();
+    // Then get posts for this category with fresh data using the same client as voting actions
     const { data: posts, error } = await supabase
       .from('posts')
       .select('*')
