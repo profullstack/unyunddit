@@ -5,10 +5,18 @@ import { createHash } from 'crypto';
 /** @type {import('./$types').PageServerLoad} */
 export async function load() {
 	try {
-		// Fetch posts ordered by score (upvotes - downvotes) and then by creation time
+		// Fetch posts with categories, ordered by score (upvotes - downvotes) and then by creation time
 		const { data: posts, error } = await supabase
 			.from('posts')
-			.select('*')
+			.select(`
+				*,
+				categories (
+					id,
+					name,
+					slug,
+					description
+				)
+			`)
 			.order('created_at', { ascending: false })
 			.limit(50);
 
@@ -228,6 +236,13 @@ export const actions = {
 					console.error('Error adding downvote:', error);
 					return fail(500, { error: 'Failed to add vote' });
 				}
+			}
+
+			// Manually update post vote counts since triggers might not be working with UUIDs
+			const { error: updateError } = await supabase.rpc('refresh_post_vote_counts', { post_id_param: postId });
+			if (updateError) {
+				console.error('Error updating vote counts:', updateError);
+				// Don't fail the request, just log the error
 			}
 
 			return { success: true };

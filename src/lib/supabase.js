@@ -2,6 +2,10 @@
 // This client is designed for use in .server.js files only
 
 import { createClient } from '@supabase/supabase-js';
+import { config } from 'dotenv';
+
+// Load environment variables from .env file
+config();
 
 /**
  * Creates a Supabase client for server-side operations
@@ -10,17 +14,18 @@ import { createClient } from '@supabase/supabase-js';
  * @returns {import('@supabase/supabase-js').SupabaseClient}
  */
 export function createSupabaseServerClient(useServiceRole = false) {
-	const supabaseUrl = process.env.PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
+	const supabaseUrl = process.env.SUPABASE_URL;
 	const supabaseKey = useServiceRole
 		? process.env.SUPABASE_SERVICE_ROLE_KEY
-		: (process.env.PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY);
+		: process.env.SUPABASE_ANON_KEY;
 
 	if (!supabaseUrl || !supabaseKey) {
-		console.warn('Missing Supabase environment variables - using fallback');
-		// Return a mock client for build time
-		return {
-			from: () => ({ select: () => ({ data: [], error: null }) })
-		};
+		console.error('Missing Supabase environment variables:', {
+			supabaseUrl: !!supabaseUrl,
+			supabaseKey: !!supabaseKey,
+			useServiceRole
+		});
+		throw new Error('Supabase environment variables are required');
 	}
 
 	return createClient(supabaseUrl, supabaseKey, {

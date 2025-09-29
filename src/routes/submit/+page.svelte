@@ -49,15 +49,6 @@
 </svelte:head>
 
 <main>
-	<header class="header">
-		<h1>🧅 <a href="/">Unyunddit</a></h1>
-		<nav class="nav">
-			<a href="/" class="nav-link">Home</a>
-			<a href="/submit" class="nav-link active">Submit Post</a>
-			<a href="/new" class="nav-link">New</a>
-		</nav>
-	</header>
-
 	<section class="content">
 		<div class="submit-form">
 			<h2>Submit a New Post</h2>
