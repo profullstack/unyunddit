@@ -1,6 +1,5 @@
 <script>
 	import PostCard from '$lib/components/PostCard.svelte';
-	import NavBar from '$lib/components/NavBar.svelte';
 	
 	/** @type {import('./$types').PageData} */
 	export let data;
@@ -14,8 +13,6 @@
 </svelte:head>
 
 <main>
-	<NavBar currentPage="home" />
-
 	<section class="content">
 		<!-- Popular Categories Section -->
 		{#if popularCategories && popularCategories.length > 0}
