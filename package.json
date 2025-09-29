@@ -1,7 +1,7 @@
 {
-	"name": "onion-ssr-boilerplate",
+	"name": "unyunddit",
 	"version": "1.0.0",
-	"description": "Privacy-focused SvelteKit boilerplate for .onion websites with SSR-only mode and Supabase integration",
+	"description": "Tor-friendly .onion reddit clone without js requirements.",
 	"type": "module",
 	"keywords": [
 		"svelte",
