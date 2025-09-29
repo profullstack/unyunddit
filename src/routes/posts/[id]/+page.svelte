@@ -71,7 +71,7 @@
 
 	<section class="content">
 		<!-- Post Details using PostCard for consistency -->
-		<PostCard {post} showVoting={true} linkToExternal={true} />
+		<PostCard post={data.post} showVoting={true} linkToExternal={true} />
 		
 		<!-- Comment Form -->
 		<section class="comment-form-section">
