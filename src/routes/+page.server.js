@@ -97,6 +97,7 @@ export const actions = {
 			if (existingVote) {
 				if (existingVote.vote_type === 'up') {
 					// Remove upvote if already upvoted
+					console.log(`Removing upvote for post ${postId} by IP hash ${ipHash.substring(0, 8)}...`);
 					const { error } = await supabase
 						.from('votes')
 						.delete()
@@ -106,8 +107,10 @@ export const actions = {
 						console.error('Error removing upvote:', error);
 						return fail(500, { error: 'Failed to remove vote' });
 					}
+					console.log('Upvote removed successfully');
 				} else {
 					// Change downvote to upvote
+					console.log(`Changing downvote to upvote for post ${postId} by IP hash ${ipHash.substring(0, 8)}...`);
 					const { error } = await supabase
 						.from('votes')
 						.update({ vote_type: 'up' })
@@ -117,9 +120,11 @@ export const actions = {
 						console.error('Error changing vote:', error);
 						return fail(500, { error: 'Failed to change vote' });
 					}
+					console.log('Vote changed to upvote successfully');
 				}
 			} else {
 				// Add new upvote
+				console.log(`Adding new upvote for post ${postId} by IP hash ${ipHash.substring(0, 8)}...`);
 				const { error } = await supabase
 					.from('votes')
 					.insert({
@@ -132,6 +137,7 @@ export const actions = {
 					console.error('Error adding upvote:', error);
 					return fail(500, { error: 'Failed to add vote' });
 				}
+				console.log('New upvote added successfully');
 			}
 
 			return { success: true };
