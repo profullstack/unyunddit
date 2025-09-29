@@ -19,12 +19,6 @@ export async function load({ params, getClientAddress }) {
 		throw error(404, 'Post not found');
 	}
 
-	// Validate UUID format
-	const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-	if (!uuidRegex.test(postId)) {
-		throw error(404, 'Invalid post ID format');
-	}
-
 	try {
 		// Get the post
 		const { data: post, error: postError } = await supabase
@@ -44,9 +38,12 @@ export async function load({ params, getClientAddress }) {
 			throw error(404, 'Post not found');
 		}
 
-		// Get threaded comments using our custom function
+		// Get comments directly (bypassing RPC function for now)
 		const { data: comments, error: commentsError } = await supabase
-			.rpc('get_post_comments', { post_id_param: postId });
+			.from('comments')
+			.select('*')
+			.eq('post_id', postId)
+			.order('created_at', { ascending: true });
 
 		if (commentsError) {
 			console.error('Error fetching comments:', commentsError);
@@ -70,12 +67,6 @@ export const actions = {
 		
 		if (!postId) {
 			return fail(400, { error: 'Invalid post ID' });
-		}
-
-		// Validate UUID format
-		const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-		if (!uuidRegex.test(postId)) {
-			return fail(400, { error: 'Invalid post ID format' });
 		}
 
 		try {
@@ -105,21 +96,15 @@ export const actions = {
 
 			// If replying to a comment, verify parent exists
 			if (parentId && parentId !== '') {
-				// Validate parent UUID format
-				const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-				if (uuidRegex.test(parentId)) {
-					const { data: parentComment, error: parentError } = await supabase
-						.from('comments')
-						.select('id, post_id')
-						.eq('id', parentId)
-						.eq('post_id', postId)
-						.single();
+				const { data: parentComment, error: parentError } = await supabase
+					.from('comments')
+					.select('id, post_id')
+					.eq('id', parentId)
+					.eq('post_id', postId)
+					.single();
 
-					if (parentError || !parentComment) {
-						return fail(400, { error: 'Parent comment not found', content });
-					}
-				} else {
-					return fail(400, { error: 'Invalid parent comment ID format', content });
+				if (parentError || !parentComment) {
+					return fail(400, { error: 'Parent comment not found', content });
 				}
 			}
 
