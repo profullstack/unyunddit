@@ -1,5 +1,5 @@
 <script>
-	import { suggestCategories } from '$lib/categories.js';
+	import { suggestCategories } from '$lib/categories.client.js';
 	
 	/** @type {import('./$types').ActionData} */
 	export let form;

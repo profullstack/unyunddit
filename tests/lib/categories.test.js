@@ -3,7 +3,9 @@ import { describe, it } from 'mocha';
 import {
   matchCategoryFromUrl,
   matchCategoryFromTitle,
-  suggestCategories,
+  suggestCategories
+} from '../../src/lib/categories.client.js';
+import {
   getAllCategories,
   getCategoryBySlug
 } from '../../src/lib/categories.js';
