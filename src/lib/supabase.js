@@ -2,7 +2,6 @@
 // This client is designed for use in .server.js files only
 
 import { createClient } from '@supabase/supabase-js';
-import { env } from '$env/dynamic/private';
 
 /**
  * Creates a Supabase client for server-side operations
@@ -11,10 +10,10 @@ import { env } from '$env/dynamic/private';
  * @returns {import('@supabase/supabase-js').SupabaseClient}
  */
 export function createSupabaseServerClient(useServiceRole = false) {
-	const supabaseUrl = env.PUBLIC_SUPABASE_URL || env.SUPABASE_URL;
+	const supabaseUrl = process.env.PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
 	const supabaseKey = useServiceRole
-		? env.SUPABASE_SERVICE_ROLE_KEY
-		: (env.PUBLIC_SUPABASE_ANON_KEY || env.SUPABASE_ANON_KEY);
+		? process.env.SUPABASE_SERVICE_ROLE_KEY
+		: (process.env.PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY);
 
 	if (!supabaseUrl || !supabaseKey) {
 		throw new Error('Missing Supabase environment variables. Check your .env file.');
