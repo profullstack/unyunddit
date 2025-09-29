@@ -3,6 +3,8 @@
 	export let post;
 	/** @type {boolean} */
 	export let showVoting = false;
+	/** @type {boolean} */
+	export let linkToExternal = false;
 
 	function getDomain(url) {
 		if (!url) return '';
@@ -46,12 +48,20 @@
 	
 	<div class="post-content">
 		<h3 class="post-title">
-			<a href="/posts/{post.id}" class="post-link">{post.title}</a>
-			{#if post.url}
-				<a href={post.url} target="_blank" rel="noopener noreferrer" class="external-icon" title="Open external link">
-					↗
+			{#if linkToExternal && post.url}
+				<a href={post.url} target="_blank" rel="noopener noreferrer" class="post-link">{post.title}</a>
+				<a href="/posts/{post.id}" class="discussion-icon" title="View discussion">
+					💬
 				</a>
 				<span class="domain">({getDomain(post.url)})</span>
+			{:else}
+				<a href="/posts/{post.id}" class="post-link">{post.title}</a>
+				{#if post.url}
+					<a href={post.url} target="_blank" rel="noopener noreferrer" class="external-icon" title="Open external link">
+						↗
+					</a>
+					<span class="domain">({getDomain(post.url)})</span>
+				{/if}
 			{/if}
 		</h3>
 		
@@ -227,6 +237,21 @@
 
 	.comments-link:hover {
 		color: #ff6b35;
+	}
+
+	.discussion-icon {
+		color: #888;
+		text-decoration: none;
+		font-size: 0.8rem;
+		margin-left: 6px;
+		padding: 2px 4px;
+		border-radius: 2px;
+		transition: color 0.2s, background-color 0.2s;
+	}
+
+	.discussion-icon:hover {
+		color: #ff6b35;
+		background-color: #333;
 	}
 
 	@media (max-width: 600px) {

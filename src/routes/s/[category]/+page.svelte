@@ -40,8 +40,7 @@
 		{:else}
 			<div class="posts">
 				{#each data.posts as post}
-					<PostCard {post} showVoting={false} />
-				{/each}
+				<PostCard {post} showVoting={true} votingAction="/" />				{/each}
 			</div>
 
 			{#if data.hasMore}

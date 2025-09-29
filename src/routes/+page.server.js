@@ -140,6 +140,13 @@ export const actions = {
 				console.log('New upvote added successfully');
 			}
 
+			// Manually update post vote counts since triggers might not be working with UUIDs
+			const { error: updateError } = await supabase.rpc('refresh_post_vote_counts', { post_id_param: postId });
+			if (updateError) {
+				console.error('Error updating vote counts:', updateError);
+				// Don't fail the request, just log the error
+			}
+
 			return { success: true };
 		} catch (error) {
 			console.error('Unexpected error in upvote action:', error);

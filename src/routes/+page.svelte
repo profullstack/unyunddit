@@ -1,5 +1,6 @@
 <script>
 	import PostCard from '$lib/components/PostCard.svelte';
+	import NavBar from '$lib/components/NavBar.svelte';
 	
 	/** @type {import('./$types').PageData} */
 	export let data;
@@ -13,15 +14,7 @@
 </svelte:head>
 
 <main>
-	<header class="header">
-		<h1>🧅 Unyunddit</h1>
-		<p class="tagline">Anonymous Reddit Clone - Posts disappear after 72 hours</p>
-		<nav class="nav">
-			<a href="/" class="nav-link active">Home</a>
-			<a href="/submit" class="nav-link">Submit Post</a>
-			<a href="/new" class="nav-link">New</a>
-		</nav>
-	</header>
+	<NavBar currentPage="home" />
 
 	<section class="content">
 		<!-- Popular Categories Section -->
@@ -45,7 +38,7 @@
 				<h2>Recent Posts</h2>
 				<div class="posts">
 					{#each posts as post}
-						<PostCard {post} showVoting={true} votingAction="/" />
+						<PostCard {post} showVoting={true} />
 					{/each}
 				</div>
 			</div>
