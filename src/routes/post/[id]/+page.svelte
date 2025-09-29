@@ -39,13 +39,13 @@
 </script>
 
 <svelte:head>
-	<title>{post?.title || 'Post'} - UnyundIt</title>
-	<meta name="description" content={post?.content || post?.title || 'Anonymous post on UnyundIt'} />
+	<title>{post?.title || 'Post'} - Unyunddit</title>
+	<meta name="description" content={post?.content || post?.title || 'Anonymous post on Unyunddit'} />
 </svelte:head>
 
 <main>
 	<header class="header">
-		<h1>🧅 <a href="/">UnyundIt</a></h1>
+		<h1>🧅 <a href="/">Unyunddit</a></h1>
 		<nav class="nav">
 			<a href="/" class="nav-link">Home</a>
 			<a href="/submit" class="nav-link">Submit Post</a>

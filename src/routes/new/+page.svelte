@@ -6,13 +6,13 @@
 </script>
 
 <svelte:head>
-	<title>New Posts - UnyundIt</title>
-	<meta name="description" content="Latest anonymous posts on UnyundIt" />
+	<title>New Posts - Unyunddit</title>
+	<meta name="description" content="Latest anonymous posts on Unyunddit" />
 </svelte:head>
 
 <main>
 	<header class="header">
-		<h1>🧅 <a href="/">UnyundIt</a></h1>
+		<h1>🧅 <a href="/">Unyunddit</a></h1>
 		<p class="tagline">Anonymous Reddit Clone - Posts disappear after 36 hours</p>
 		<nav class="nav">
 			<a href="/" class="nav-link">Home</a>

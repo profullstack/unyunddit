@@ -1,4 +1,4 @@
-# UnyundIt - Anonymous Reddit Clone
+# Unyunddit - Anonymous Reddit Clone
 
 A completely anonymous Reddit clone designed for the Tor network with automatic post deletion after 36 hours. Built with SvelteKit and Supabase, featuring server-side rendering only (no client-side JavaScript) for maximum privacy and security.
 
