@@ -133,7 +133,7 @@ export const actions = {
 			}
 
 			// Redirect to the new post
-			throw redirect(303, `/post/${post.id}`);
+			throw redirect(303, `/posts/${post.id}`);
 
 		} catch (error) {
 			// Handle redirect
