@@ -73,10 +73,16 @@ export const actions = {
 	upvote: async ({ request, getClientAddress }) => {
 		try {
 			const data = await request.formData();
-			const postId = data.get('postId');
+			const postId = data.get('postId')?.toString()?.trim();
 			
 			if (!postId) {
 				return fail(400, { error: 'Post ID is required' });
+			}
+
+			// Validate UUID format
+			const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+			if (!uuidRegex.test(postId)) {
+				return fail(400, { error: 'Invalid post ID format' });
 			}
 
 			const ipHash = hashIP(getClientAddress());
@@ -144,10 +150,16 @@ export const actions = {
 	downvote: async ({ request, getClientAddress }) => {
 		try {
 			const data = await request.formData();
-			const postId = data.get('postId');
+			const postId = data.get('postId')?.toString()?.trim();
 			
 			if (!postId) {
 				return fail(400, { error: 'Post ID is required' });
+			}
+
+			// Validate UUID format
+			const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+			if (!uuidRegex.test(postId)) {
+				return fail(400, { error: 'Invalid post ID format' });
 			}
 
 			const ipHash = hashIP(getClientAddress());

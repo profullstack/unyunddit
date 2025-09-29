@@ -10,14 +10,15 @@ export async function handle({ event, resolve }) {
 	const method = event.request.method;
 	const url = event.url.pathname + event.url.search;
 	
-	console.log(`[REQUEST] ${method} ${url} - IP: ${clientIP} - UA: ${userAgent.substring(0, 100)}`);
+	console.log(`🌐 [HTTP-REQUEST] ${method} ${url} - IP: ${clientIP} - UA: ${userAgent.substring(0, 50)}`);
 	
 	// Resolve the request
 	const response = await resolve(event);
 	
 	// Log response
 	const duration = Date.now() - startTime;
-	console.log(`[RESPONSE] ${method} ${url} - ${response.status} - ${duration}ms`);
+	const statusEmoji = response.status >= 400 ? '❌' : response.status >= 300 ? '⚠️' : '✅';
+	console.log(`${statusEmoji} [HTTP-RESPONSE] ${method} ${url} - ${response.status} - ${duration}ms`);
 
 	// Set strict security headers for .onion websites
 	response.headers.set(

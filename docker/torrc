@@ -19,10 +19,9 @@ ORPort 0
 DirPort 0
 BridgeRelay 0
 
-# Logging - both to file and stdout for Railway visibility
+# Logging - reduced verbosity for Railway visibility
 Log notice file /var/log/tor/notices.log
 Log notice stdout
-Log info stdout
 Log warn stdout
 Log err stdout
 

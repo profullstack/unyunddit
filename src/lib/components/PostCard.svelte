@@ -5,6 +5,8 @@
 	export let showVoting = false;
 	/** @type {string} */
 	export let votingAction = '/';
+	/** @type {boolean} */
+	export let isPostPage = false;
 
 	function getDomain(url) {
 		if (!url) return '';
@@ -30,12 +32,12 @@
 <article class="post">
 	{#if showVoting}
 		<div class="post-votes">
-			<form method="POST" action="{votingAction}?/upvote" class="vote-form">
+			<form method="POST" action="/?/upvote" class="vote-form">
 				<input type="hidden" name="postId" value={post.id} />
 				<button type="submit" class="vote-btn upvote" title="Upvote">▲</button>
 			</form>
 			<span class="score">{post.upvotes - post.downvotes}</span>
-			<form method="POST" action="{votingAction}?/downvote" class="vote-form">
+			<form method="POST" action="/?/downvote" class="vote-form">
 				<input type="hidden" name="postId" value={post.id} />
 				<button type="submit" class="vote-btn downvote" title="Downvote">▼</button>
 			</form>

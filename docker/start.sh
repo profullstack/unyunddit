@@ -136,9 +136,29 @@ echo "=========================================="
 
 # Start the app in background and monitor onion URL
 cd /app
-echo "🚀 Starting Node.js app with stderr logging..."
-PORT=8080 node build/index.js 2>&1 | sed 's/^/[APP] /' &
+echo "🚀 Starting Node.js app..."
+echo "📁 Current directory: $(pwd)"
+echo "📋 App files:"
+ls -la build/ || echo "❌ Build directory not found"
+echo "🔧 Starting Node.js with PORT=8080..."
+
+# Start with explicit logging
+PORT=8080 node build/index.js 2>&1 &
 APP_PID=$!
+
+echo "✅ Node.js started with PID: $APP_PID"
+echo "⏳ Waiting for app to initialize..."
+sleep 3
+
+# Test if the app is responding
+echo "🔍 Testing app connectivity..."
+if nc -z 127.0.0.1 8080; then
+    echo "✅ App is responding on port 8080"
+else
+    echo "❌ App is NOT responding on port 8080"
+    echo "🔍 Checking app process..."
+    ps aux | grep node || echo "No node processes found"
+fi
 
 # Function to display onion URL periodically
 display_onion_info() {
