@@ -1,5 +1,15 @@
 import { supabase } from '$lib/supabase.js';
 import { error, fail } from '@sveltejs/kit';
+import { createHash } from 'crypto';
+
+/**
+ * Hash IP address for anonymous voting while preventing double voting
+ * @param {string} ip - IP address to hash
+ * @returns {string} SHA256 hash of the IP address
+ */
+function hashIP(ip) {
+	return createHash('sha256').update(ip).digest('hex');
+}
 
 /** @type {import('./$types').PageServerLoad} */
 export async function load({ params, getClientAddress }) {
@@ -122,73 +132,155 @@ export const actions = {
 		}
 	},
 
-	vote: async ({ request, params, getClientAddress }) => {
-		const postId = parseInt(params.id);
-		const clientIP = getClientAddress();
-		
-		if (isNaN(postId)) {
-			return fail(400, { error: 'Invalid post ID' });
-		}
-
+	upvote: async ({ request, params, getClientAddress }) => {
 		try {
-			const data = await request.formData();
-			const voteType = data.get('vote');
-
-			if (!['up', 'down'].includes(voteType)) {
-				return fail(400, { error: 'Invalid vote type' });
+			const postId = parseInt(params.id);
+			if (isNaN(postId)) {
+				return fail(400, { error: 'Invalid post ID' });
 			}
 
-			// Check if user has already voted on this post
-			const { data: existingVote } = await supabase
+			const data = await request.formData();
+			const postIdFromForm = data.get('postId');
+			
+			if (!postIdFromForm || parseInt(postIdFromForm) !== postId) {
+				return fail(400, { error: 'Post ID mismatch' });
+			}
+
+			const ipHash = hashIP(getClientAddress());
+
+			// Check if user already voted on this post
+			const { data: existingVote, error: voteCheckError } = await supabase
 				.from('votes')
-				.select('vote_type')
+				.select('id, vote_type')
+				.eq('ip_hash', ipHash)
 				.eq('post_id', postId)
-				.eq('voter_ip', clientIP)
 				.single();
 
+			if (voteCheckError && voteCheckError.code !== 'PGRST116') {
+				console.error('Error checking existing vote:', voteCheckError);
+				return fail(500, { error: 'Failed to check existing vote' });
+			}
+
 			if (existingVote) {
-				if (existingVote.vote_type === voteType) {
-					// Remove vote if clicking same vote type
+				if (existingVote.vote_type === 'up') {
+					// Remove upvote if already upvoted
 					const { error } = await supabase
 						.from('votes')
 						.delete()
-						.eq('post_id', postId)
-						.eq('voter_ip', clientIP);
+						.eq('id', existingVote.id);
 
 					if (error) {
+						console.error('Error removing upvote:', error);
 						return fail(500, { error: 'Failed to remove vote' });
 					}
 				} else {
-					// Update vote if clicking different vote type
+					// Change downvote to upvote
 					const { error } = await supabase
 						.from('votes')
-						.update({ vote_type: voteType })
-						.eq('post_id', postId)
-						.eq('voter_ip', clientIP);
+						.update({ vote_type: 'up' })
+						.eq('id', existingVote.id);
 
 					if (error) {
-						return fail(500, { error: 'Failed to update vote' });
+						console.error('Error changing vote:', error);
+						return fail(500, { error: 'Failed to change vote' });
 					}
 				}
 			} else {
-				// Insert new vote
+				// Add new upvote
 				const { error } = await supabase
 					.from('votes')
 					.insert({
+						ip_hash: ipHash,
 						post_id: postId,
-						voter_ip: clientIP,
-						vote_type: voteType
+						vote_type: 'up'
 					});
 
 				if (error) {
-					return fail(500, { error: 'Failed to cast vote' });
+					console.error('Error adding upvote:', error);
+					return fail(500, { error: 'Failed to add vote' });
 				}
 			}
 
 			return { success: true };
-		} catch (err) {
-			console.error('Error in vote action:', err);
-			return fail(500, { error: 'Failed to process vote' });
+		} catch (error) {
+			console.error('Unexpected error in upvote action:', error);
+			return fail(500, { error: 'Internal server error' });
+		}
+	},
+
+	downvote: async ({ request, params, getClientAddress }) => {
+		try {
+			const postId = parseInt(params.id);
+			if (isNaN(postId)) {
+				return fail(400, { error: 'Invalid post ID' });
+			}
+
+			const data = await request.formData();
+			const postIdFromForm = data.get('postId');
+			
+			if (!postIdFromForm || parseInt(postIdFromForm) !== postId) {
+				return fail(400, { error: 'Post ID mismatch' });
+			}
+
+			const ipHash = hashIP(getClientAddress());
+
+			// Check if user already voted on this post
+			const { data: existingVote, error: voteCheckError } = await supabase
+				.from('votes')
+				.select('id, vote_type')
+				.eq('ip_hash', ipHash)
+				.eq('post_id', postId)
+				.single();
+
+			if (voteCheckError && voteCheckError.code !== 'PGRST116') {
+				console.error('Error checking existing vote:', voteCheckError);
+				return fail(500, { error: 'Failed to check existing vote' });
+			}
+
+			if (existingVote) {
+				if (existingVote.vote_type === 'down') {
+					// Remove downvote if already downvoted
+					const { error } = await supabase
+						.from('votes')
+						.delete()
+						.eq('id', existingVote.id);
+
+					if (error) {
+						console.error('Error removing downvote:', error);
+						return fail(500, { error: 'Failed to remove vote' });
+					}
+				} else {
+					// Change upvote to downvote
+					const { error } = await supabase
+						.from('votes')
+						.update({ vote_type: 'down' })
+						.eq('id', existingVote.id);
+
+					if (error) {
+						console.error('Error changing vote:', error);
+						return fail(500, { error: 'Failed to change vote' });
+					}
+				}
+			} else {
+				// Add new downvote
+				const { error } = await supabase
+					.from('votes')
+					.insert({
+						ip_hash: ipHash,
+						post_id: postId,
+						vote_type: 'down'
+					});
+
+				if (error) {
+					console.error('Error adding downvote:', error);
+					return fail(500, { error: 'Failed to add vote' });
+				}
+			}
+
+			return { success: true };
+		} catch (error) {
+			console.error('Unexpected error in downvote action:', error);
+			return fail(500, { error: 'Internal server error' });
 		}
 	}
 };

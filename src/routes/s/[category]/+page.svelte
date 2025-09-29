@@ -1,26 +1,8 @@
 <script>
+	import PostCard from '$lib/components/PostCard.svelte';
+	
 	/** @type {import('./$types').PageData} */
 	export let data;
-	
-	function formatTimeAgo(dateString) {
-		const date = new Date(dateString);
-		const now = new Date();
-		const diffInSeconds = Math.floor((now - date) / 1000);
-		
-		if (diffInSeconds < 60) return `${diffInSeconds}s ago`;
-		if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
-		if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
-		return `${Math.floor(diffInSeconds / 86400)}d ago`;
-	}
-	
-	function getDomain(url) {
-		if (!url) return '';
-		try {
-			return new URL(url).hostname.replace('www.', '');
-		} catch {
-			return '';
-		}
-	}
 </script>
 
 <svelte:head>
@@ -58,39 +40,7 @@
 		{:else}
 			<div class="posts">
 				{#each data.posts as post}
-					<article class="post">
-						<div class="post-votes">
-							<div class="vote-score">{post.upvotes - post.downvotes}</div>
-						</div>
-						
-						<div class="post-content">
-							<h3 class="post-title">
-								<a href="/posts/{post.id}">{post.title}</a>
-								{#if post.url}
-									<a href={post.url} target="_blank" rel="noopener noreferrer" class="external-icon" title="Open external link">
-										↗
-									</a>
-									<span class="domain">({getDomain(post.url)})</span>
-								{/if}
-							</h3>
-							
-							{#if post.content}
-								<div class="post-text">
-									{post.content.length > 200 
-										? post.content.substring(0, 200) + '...' 
-										: post.content}
-								</div>
-							{/if}
-							
-							<div class="post-meta">
-								<span class="time">{formatTimeAgo(post.created_at)}</span>
-								<span class="separator">•</span>
-								<a href="/post/{post.id}" class="comments-link">
-									{post.comment_count} comments
-								</a>
-							</div>
-						</div>
-					</article>
+					<PostCard {post} showVoting={false} />
 				{/each}
 			</div>
 

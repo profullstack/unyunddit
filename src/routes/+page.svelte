@@ -1,4 +1,6 @@
 <script>
+	import PostCard from '$lib/components/PostCard.svelte';
+	
 	/** @type {import('./$types').PageData} */
 	export let data;
 
@@ -43,62 +45,7 @@
 				<h2>Recent Posts</h2>
 				<div class="posts">
 					{#each posts as post}
-						<article class="post">
-							<div class="post-votes">
-								<form method="POST" action="/?/upvote" class="vote-form">
-									<input type="hidden" name="postId" value={post.id} />
-									<button type="submit" class="vote-btn upvote" title="Upvote">▲</button>
-								</form>
-								<span class="score">{post.upvotes - post.downvotes}</span>
-								<form method="POST" action="/?/downvote" class="vote-form">
-									<input type="hidden" name="postId" value={post.id} />
-									<button type="submit" class="vote-btn downvote" title="Downvote">▼</button>
-								</form>
-							</div>
-							
-							<div class="post-content">
-								<h3 class="post-title">
-									<a href="/posts/{post.id}" class="post-link">{post.title}</a>
-									{#if post.url}
-										<a href={post.url} target="_blank" rel="noopener noreferrer" class="external-icon" title="Open external link">
-											↗
-										</a>
-										<span class="domain">({new URL(post.url).hostname})</span>
-									{/if}
-								</h3>
-								
-								{#if post.content}
-									<div class="post-text">
-										{post.content.length > 200 
-											? post.content.substring(0, 200) + '...' 
-											: post.content}
-									</div>
-								{/if}
-								
-								<div class="post-meta">
-									<span class="time">
-										{new Date(post.created_at).toLocaleString('en-US', {
-											year: 'numeric',
-											month: 'short',
-											day: 'numeric',
-											hour: '2-digit',
-											minute: '2-digit'
-										})}
-									</span>
-									<a href="/posts/{post.id}" class="comments-link">
-										{post.comment_count || 0} comment{(post.comment_count || 0) !== 1 ? 's' : ''}
-									</a>
-									<span class="expires">
-										Expires: {new Date(post.expires_at).toLocaleString('en-US', {
-											month: 'short',
-											day: 'numeric',
-											hour: '2-digit',
-											minute: '2-digit'
-										})}
-									</span>
-								</div>
-							</div>
-						</article>
+						<PostCard {post} showVoting={true} votingAction="/" />
 					{/each}
 				</div>
 			</div>
