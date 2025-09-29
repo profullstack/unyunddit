@@ -23,9 +23,10 @@ ls -la /var/lib/tor/
 ls -la /var/lib/tor/hidden_service/ || echo "Hidden service directory is empty (expected for first run)"
 echo "=========================================="
 
-# Start Tor in the background
+# Start Tor in the background with logs to stdout
 echo "Starting Tor with SOCKS proxy..."
-tor -f /etc/tor/torrc &
+echo "📋 Tor logs will be visible in Railway logs"
+tor -f /etc/tor/torrc 2>&1 | sed 's/^/[TOR] /' &
 TOR_PID=$!
 
 # Wait for Tor to initialize and check SOCKS proxy
@@ -124,6 +125,8 @@ display_onion_info() {
 # Start periodic display in background
 display_onion_info &
 MONITOR_PID=$!
+
+# Tor logs are now directly piped to stdout above, no need for separate tail
 
 # Wait for the main app process
 wait $APP_PID

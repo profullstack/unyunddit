@@ -82,12 +82,17 @@ export const actions = {
 			const ipHash = hashIP(getClientAddress());
 
 			// Check if user already voted on this post
-			const { data: existingVote } = await supabase
+			const { data: existingVote, error: voteCheckError } = await supabase
 				.from('votes')
 				.select('id, vote_type')
 				.eq('ip_hash', ipHash)
 				.eq('post_id', postId)
 				.single();
+
+			if (voteCheckError && voteCheckError.code !== 'PGRST116') {
+				console.error('Error checking existing vote:', voteCheckError);
+				return fail(500, { error: 'Failed to check existing vote' });
+			}
 
 			if (existingVote) {
 				if (existingVote.vote_type === 'up') {
@@ -148,12 +153,17 @@ export const actions = {
 			const ipHash = hashIP(getClientAddress());
 
 			// Check if user already voted on this post
-			const { data: existingVote } = await supabase
+			const { data: existingVote, error: voteCheckError } = await supabase
 				.from('votes')
 				.select('id, vote_type')
 				.eq('ip_hash', ipHash)
 				.eq('post_id', postId)
 				.single();
+
+			if (voteCheckError && voteCheckError.code !== 'PGRST116') {
+				console.error('Error checking existing vote:', voteCheckError);
+				return fail(500, { error: 'Failed to check existing vote' });
+			}
 
 			if (existingVote) {
 				if (existingVote.vote_type === 'down') {

@@ -7,7 +7,7 @@ HiddenServicePort 80 127.0.0.1:8080
 
 # Security settings
 DataDirectory /var/lib/tor
-RunAsDaemon 1
+RunAsDaemon 0
 User tor
 
 # CRITICAL: Ensure we are NOT an exit node
@@ -19,8 +19,9 @@ ORPort 0
 DirPort 0
 BridgeRelay 0
 
-# Logging
+# Logging - both to file and stdout for Railway visibility
 Log notice file /var/log/tor/notices.log
+Log notice stdout
 
 # Allow connections from localhost
 SocksPolicy accept 127.0.0.1
