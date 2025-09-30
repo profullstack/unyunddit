@@ -1,16 +1,6 @@
 import { supabase } from '$lib/supabase.js';
 import { fail, redirect } from '@sveltejs/kit';
 import { getFingerprint } from '$lib/fingerprint.js';
-import { createHash } from 'crypto';
-
-/**
- * Hash IP address for backward compatibility during migration
- * @param {string} ip - IP address to hash
- * @returns {string} SHA256 hash of the IP address
- */
-function hashIP(ip) {
-	return createHash('sha256').update(ip).digest('hex');
-}
 
 /**
  * Handle upvote action
@@ -27,18 +17,16 @@ export async function handleUpvote(event) {
 	}
 
 	try {
-		// Get both IP and browser fingerprint for transition period
-		const clientIP = locals.ip;
-		const ipHash = hashIP(clientIP);
+		// Get browser fingerprint from event.locals (set by hooks.server.js)
 		const browserFingerprint = getFingerprint(locals);
 		
-		console.log(`Vote request from IP: ${clientIP} (hash: ${ipHash.substring(0, 8)}...) fingerprint: ${browserFingerprint.substring(0, 8)}...`);
+		console.log(`Vote request from fingerprint: ${browserFingerprint.substring(0, 8)}...`);
 
-		// Check if user already voted on this post (check both ip_hash and browser_fingerprint)
+		// Check if user already voted on this post using browser fingerprint
 		const { data: existingVote, error: voteCheckError } = await supabase
 			.from('votes')
 			.select('id, vote_type')
-			.or(`ip_hash.eq.${ipHash},browser_fingerprint.eq.${browserFingerprint}`)
+			.eq('browser_fingerprint', browserFingerprint)
 			.eq('post_id', postId)
 			.single();
 
@@ -81,7 +69,6 @@ export async function handleUpvote(event) {
 			const { error } = await supabase
 				.from('votes')
 				.insert({
-					ip_hash: ipHash,
 					browser_fingerprint: browserFingerprint,
 					post_id: postId,
 					vote_type: 'up'
@@ -147,18 +134,16 @@ export async function handleDownvote(event) {
 	}
 
 	try {
-		// Get both IP and browser fingerprint for transition period
-		const clientIP = locals.ip;
-		const ipHash = hashIP(clientIP);
+		// Get browser fingerprint from event.locals (set by hooks.server.js)
 		const browserFingerprint = getFingerprint(locals);
 		
-		console.log(`Vote request from IP: ${clientIP} (hash: ${ipHash.substring(0, 8)}...) fingerprint: ${browserFingerprint.substring(0, 8)}...`);
+		console.log(`Vote request from fingerprint: ${browserFingerprint.substring(0, 8)}...`);
 
-		// Check if user already voted on this post (check both ip_hash and browser_fingerprint)
+		// Check if user already voted on this post using browser fingerprint
 		const { data: existingVote, error: voteCheckError } = await supabase
 			.from('votes')
 			.select('id, vote_type')
-			.or(`ip_hash.eq.${ipHash},browser_fingerprint.eq.${browserFingerprint}`)
+			.eq('browser_fingerprint', browserFingerprint)
 			.eq('post_id', postId)
 			.single();
 
@@ -196,7 +181,6 @@ export async function handleDownvote(event) {
 			const { error } = await supabase
 				.from('votes')
 				.insert({
-					ip_hash: ipHash,
 					browser_fingerprint: browserFingerprint,
 					post_id: postId,
 					vote_type: 'down'
