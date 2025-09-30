@@ -22,6 +22,10 @@ export async function GET({ request, locals, getClientAddress }) {
 			detected_ip: detectedIP,
 			from_locals: locals.ip
 		},
+		fingerprint: {
+			browser_fingerprint: locals.fingerprint,
+			fingerprint_preview: locals.fingerprint ? locals.fingerprint.substring(0, 8) + '...' : 'none'
+		},
 		headers: headers,
 		environment: {
 			node_env: process.env.NODE_ENV,
@@ -33,7 +37,8 @@ export async function GET({ request, locals, getClientAddress }) {
 	// Also log to console for server-side debugging
 	console.log('🔍 [RAW-ENDPOINT] Request details:', {
 		ip_detection: response.ip_detection,
-		all_headers: response.headers
+		fingerprint: response.fingerprint,
+		headers_count: Object.keys(response.headers).length
 	});
 
 	return json(response, {

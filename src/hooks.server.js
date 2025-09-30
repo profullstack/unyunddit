@@ -1,5 +1,6 @@
 // Security-focused server hooks for .onion websites
 // Implements strict CSP and privacy headers
+import { addFingerprintToLocals } from '$lib/fingerprint.js';
 
 /**
  * Get the real client IP address following SvelteKit 5 best practices
@@ -95,6 +96,9 @@ export async function handle({ event, resolve }) {
 	
 	// Make IP available to routes via event.locals
 	event.locals.ip = clientIP;
+	
+	// Generate and store browser fingerprint for user tracking
+	addFingerprintToLocals(event);
 	
 	const userAgent = event.request.headers.get('user-agent') || 'Unknown';
 	const method = event.request.method;

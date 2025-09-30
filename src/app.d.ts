@@ -5,6 +5,7 @@ declare global {
 		// interface Error {}
 		interface Locals {
 			ip: string;
+			fingerprint: string;
 		}
 		// interface PageData {}
 		// interface PageState {}
