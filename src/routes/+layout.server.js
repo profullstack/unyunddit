@@ -5,7 +5,11 @@ import { supabase } from '$lib/supabase.js';
 export async function load({ cookies }) {
 	const userId = getCurrentUser(cookies);
 	
+	// Debug: Log authentication state
+	console.log('Layout load - userId:', userId);
+	
 	if (!userId) {
+		console.log('Layout load - No user ID found');
 		return {
 			user: null,
 			isAuthenticated: false
@@ -15,8 +19,11 @@ export async function load({ cookies }) {
 	// Get user information from database
 	const userInfo = await getUserInfo(userId, supabase);
 	
+	console.log('Layout load - userInfo:', userInfo);
+	
 	if (userInfo.error) {
 		// If there's an error getting user info, clear the invalid session
+		console.log('Layout load - Error getting user info:', userInfo.error);
 		cookies.delete('user_session', { path: '/' });
 		return {
 			user: null,
@@ -24,6 +31,7 @@ export async function load({ cookies }) {
 		};
 	}
 
+	console.log('Layout load - User authenticated:', userInfo.username);
 	return {
 		user: {
 			id: userId,
