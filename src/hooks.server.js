@@ -13,6 +13,7 @@ function getClientIP(event) {
 	// Debug logging for development
 	console.log(`🔍 [IP-DEBUG] Direct connection: ${direct}`);
 	
+	// Accept direct connection if it's not localhost (for clearnet)
 	if (direct && direct !== '127.0.0.1' && direct !== '::1') {
 		console.log(`✅ [IP-DEBUG] Using direct connection: ${direct}`);
 		return direct;
@@ -46,11 +47,16 @@ function getClientIP(event) {
 		console.log(`🔍 [IP-DEBUG] No proxy headers found`);
 	}
 
-	// Check single-value headers first (more reliable)
-	if (real) {
-		console.log(`✅ [IP-DEBUG] Using x-real-ip: ${real}`);
-		return real;
+	// Handle x-forwarded-for FIRST (Railway puts real client IP here)
+	if (xff) {
+		const firstIP = xff.split(',')[0]?.trim();
+		if (firstIP) {
+			console.log(`✅ [IP-DEBUG] Using x-forwarded-for first IP: ${firstIP}`);
+			return firstIP;
+		}
 	}
+
+	// Check single-value headers (but x-real-ip might be internal IP on some platforms)
 	if (cf) {
 		console.log(`✅ [IP-DEBUG] Using cf-connecting-ip: ${cf}`);
 		return cf;
@@ -67,14 +73,11 @@ function getClientIP(event) {
 		console.log(`✅ [IP-DEBUG] Using x-client-ip: ${xClient}`);
 		return xClient;
 	}
-
-	// Handle x-forwarded-for (can contain multiple IPs)
-	if (xff) {
-		const firstIP = xff.split(',')[0]?.trim();
-		if (firstIP) {
-			console.log(`✅ [IP-DEBUG] Using x-forwarded-for first IP: ${firstIP}`);
-			return firstIP;
-		}
+	
+	// x-real-ip last (might be internal IP on Railway/some platforms)
+	if (real) {
+		console.log(`✅ [IP-DEBUG] Using x-real-ip: ${real}`);
+		return real;
 	}
 
 	// Fallback to direct connection (even if localhost)
