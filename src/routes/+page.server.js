@@ -24,6 +24,34 @@ export async function load() {
 			console.error('Error fetching posts:', error);
 		}
 
+		// Calculate real-time vote counts for each post
+		let postsWithVoteCounts = [];
+		if (posts && posts.length > 0) {
+			postsWithVoteCounts = await Promise.all(
+				posts.map(async (post) => {
+					// Get upvote count
+					const { count: upvoteCount } = await supabase
+						.from('votes')
+						.select('*', { count: 'exact', head: true })
+						.eq('post_id', post.id)
+						.eq('vote_type', 'up');
+
+					// Get downvote count
+					const { count: downvoteCount } = await supabase
+						.from('votes')
+						.select('*', { count: 'exact', head: true })
+						.eq('post_id', post.id)
+						.eq('vote_type', 'down');
+
+					return {
+						...post,
+						upvotes: upvoteCount || 0,
+						downvotes: downvoteCount || 0
+					};
+				})
+			);
+		}
+
 		// Get all categories first
 		const { data: allCategories, error: categoriesError } = await supabase
 			.from('categories')
@@ -55,7 +83,7 @@ export async function load() {
 		}
 
 		return {
-			posts: posts || [],
+			posts: postsWithVoteCounts || [],
 			popularCategories: finalCategories || []
 		};
 	} catch (error) {
