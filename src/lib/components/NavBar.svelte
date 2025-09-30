@@ -7,6 +7,7 @@
 	<a href="/" class="nav-link" class:active={currentPage === 'home'}>Home</a>
 	<a href="/submit" class="nav-link" class:active={currentPage === 'submit'}>Submit Post</a>
 	<a href="/new" class="nav-link" class:active={currentPage === 'new'}>New</a>
+	<a href="/popular" class="nav-link" class:active={currentPage === 'popular'}>Popular</a>
 </nav>
 
 <style>
