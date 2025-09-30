@@ -67,27 +67,7 @@ function getClientIP(event) {
 		}
 	}
 
-	// Development fallback: Create a unique IP based on User-Agent + other headers
-	// This allows testing different "users" in development
-	if (direct === '127.0.0.1' || direct === '::1') {
-		const userAgent = headers.get('user-agent') || '';
-		const acceptLanguage = headers.get('accept-language') || '';
-		const acceptEncoding = headers.get('accept-encoding') || '';
-		
-		// Create a simple hash from browser fingerprint for development
-		const fingerprint = userAgent + acceptLanguage + acceptEncoding;
-		const hash = fingerprint.split('').reduce((a, b) => {
-			a = ((a << 5) - a) + b.charCodeAt(0);
-			return a & a;
-		}, 0);
-		
-		// Convert to a fake IP in the 192.168.x.x range for development
-		const fakeIP = `192.168.${Math.abs(hash) % 255}.${Math.abs(hash >> 8) % 255}`;
-		console.log(`🧪 [IP-DEBUG] Development mode: Generated fake IP ${fakeIP} from browser fingerprint`);
-		return fakeIP;
-	}
-
-	// Fallback to direct connection
+	// Fallback to direct connection (even if localhost)
 	console.log(`⚠️ [IP-DEBUG] Falling back to direct connection: ${direct ?? 'unknown'}`);
 	return direct ?? '';
 }

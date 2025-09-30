@@ -38,8 +38,8 @@ RUN pnpm run build
 # Production stage
 FROM node:20-alpine AS runner
 
-# Install pnpm, tor, and netcat for proxy testing
-RUN apk add --no-cache tor netcat-openbsd && \
+# Install pnpm, tor, nginx, gettext (for envsubst), and netcat for proxy testing
+RUN apk add --no-cache tor nginx gettext netcat-openbsd && \
     npm install -g pnpm
 
 WORKDIR /app
@@ -52,19 +52,23 @@ COPY --from=builder /app/pnpm-lock.yaml* ./
 # Install only production dependencies
 RUN pnpm install --prod --no-frozen-lockfile
 
-# Copy tor configuration
+# Copy tor and nginx configurations
 COPY docker/torrc /etc/tor/torrc
+COPY docker/nginx.conf /etc/nginx/nginx.conf
 
-# Create tor data directory
+# Create tor data directory and nginx directories
 RUN mkdir -p /var/lib/tor/hidden_service && \
-    chown -R tor:tor /var/lib/tor
+    chown -R tor:tor /var/lib/tor && \
+    mkdir -p /var/log/nginx && \
+    mkdir -p /var/lib/nginx/tmp && \
+    chown -R nginx:nginx /var/log/nginx /var/lib/nginx
 
 # Copy and set up start script
 COPY docker/start.sh /start.sh
 RUN chmod +x /start.sh
 
-# Expose port
-EXPOSE 8080
+# Expose nginx port (configurable via NGINX_PORT env var)
+EXPOSE ${NGINX_PORT:-8080}
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \

@@ -130,20 +130,28 @@ fi
 
 echo "=========================================="
 
-# Start the Node.js application with the onion URL available
-echo "🚀 Starting SvelteKit application on port 8080..."
+# Set default ports if not provided
+SVELTEKIT_PORT=${PORT:-8000}
+NGINX_PORT=${NGINX_PORT:-8080}
+
+echo "🔧 Port Configuration:"
+echo "   SvelteKit: ${SVELTEKIT_PORT}"
+echo "   Nginx: ${NGINX_PORT}"
+
+# Start the SvelteKit application
+echo "🚀 Starting SvelteKit application on port ${SVELTEKIT_PORT}..."
 echo "=========================================="
 
-# Start the app in background and monitor onion URL
+# Start the app in background
 cd /app
 echo "🚀 Starting Node.js app..."
 echo "📁 Current directory: $(pwd)"
 echo "📋 App files:"
 ls -la build/ || echo "❌ Build directory not found"
-echo "🔧 Starting Node.js with PORT=8080..."
+echo "🔧 Starting Node.js with PORT=${SVELTEKIT_PORT}..."
 
 # Start with explicit logging
-PORT=8080 node build/index.js 2>&1 &
+PORT=${SVELTEKIT_PORT} node build/index.js 2>&1 &
 APP_PID=$!
 
 echo "✅ Node.js started with PID: $APP_PID"
@@ -152,12 +160,57 @@ sleep 3
 
 # Test if the app is responding
 echo "🔍 Testing app connectivity..."
-if nc -z 127.0.0.1 8080; then
-    echo "✅ App is responding on port 8080"
+if nc -z 127.0.0.1 ${SVELTEKIT_PORT}; then
+    echo "✅ App is responding on port ${SVELTEKIT_PORT}"
 else
-    echo "❌ App is NOT responding on port 8080"
+    echo "❌ App is NOT responding on port ${SVELTEKIT_PORT}"
     echo "🔍 Checking app process..."
     ps aux | grep node || echo "No node processes found"
+fi
+
+# Create nginx config with environment variable substitution
+echo "=========================================="
+echo "🌐 Setting up nginx proxy on port ${NGINX_PORT}..."
+echo "=========================================="
+
+# Substitute environment variables in nginx config
+envsubst '${PORT} ${NGINX_PORT}' < /etc/nginx/nginx.conf > /tmp/nginx.conf
+mv /tmp/nginx.conf /etc/nginx/nginx.conf
+
+echo "🔧 Nginx configuration:"
+echo "   Listening on: ${NGINX_PORT}"
+echo "   Proxying to: 127.0.0.1:${SVELTEKIT_PORT}"
+
+# Test nginx configuration
+echo "🔍 Testing nginx configuration..."
+nginx -t
+
+if [ $? -eq 0 ]; then
+    echo "✅ Nginx configuration is valid"
+    
+    # Start nginx
+    nginx
+    
+    echo "✅ Nginx started"
+    echo "⏳ Waiting for nginx to initialize..."
+    sleep 2
+    
+    # Test if nginx is responding
+    echo "🔍 Testing nginx connectivity..."
+    if nc -z 127.0.0.1 ${NGINX_PORT}; then
+        echo "✅ Nginx is responding on port ${NGINX_PORT}"
+        echo "🔗 Nginx is proxying requests to SvelteKit on port ${SVELTEKIT_PORT}"
+    else
+        echo "❌ Nginx is NOT responding on port ${NGINX_PORT}"
+        echo "🔍 Checking nginx process..."
+        ps aux | grep nginx || echo "No nginx processes found"
+        echo "🔍 Checking nginx error logs..."
+        cat /var/log/nginx/error.log || echo "No nginx error logs found"
+    fi
+else
+    echo "❌ ERROR: Nginx configuration is invalid"
+    nginx -t
+    exit 1
 fi
 
 # Function to display onion URL periodically
