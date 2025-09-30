@@ -9,7 +9,12 @@
 function getClientIP(event) {
 	// 1) Try direct connection first (no proxy)
 	const direct = event.getClientAddress?.();
+	
+	// Debug logging for development
+	console.log(`🔍 [IP-DEBUG] Direct connection: ${direct}`);
+	
 	if (direct && direct !== '127.0.0.1' && direct !== '::1') {
+		console.log(`✅ [IP-DEBUG] Using direct connection: ${direct}`);
 		return direct;
 	}
 
@@ -22,20 +27,48 @@ function getClientIP(event) {
 	const fly = headers.get('fly-client-ip');             // Fly.io
 	const xClient = headers.get('x-client-ip');           // Generic proxy
 
+	// Debug all headers
+	const allHeaders = { xff, real, cf, ak, fly, xClient };
+	const presentHeaders = Object.fromEntries(Object.entries(allHeaders).filter(([k, v]) => v));
+	if (Object.keys(presentHeaders).length > 0) {
+		console.log(`🔍 [IP-DEBUG] Found proxy headers:`, presentHeaders);
+	} else {
+		console.log(`🔍 [IP-DEBUG] No proxy headers found`);
+	}
+
 	// Check single-value headers first (more reliable)
-	if (real) return real;
-	if (cf) return cf;
-	if (ak) return ak;
-	if (fly) return fly;
-	if (xClient) return xClient;
+	if (real) {
+		console.log(`✅ [IP-DEBUG] Using x-real-ip: ${real}`);
+		return real;
+	}
+	if (cf) {
+		console.log(`✅ [IP-DEBUG] Using cf-connecting-ip: ${cf}`);
+		return cf;
+	}
+	if (ak) {
+		console.log(`✅ [IP-DEBUG] Using true-client-ip: ${ak}`);
+		return ak;
+	}
+	if (fly) {
+		console.log(`✅ [IP-DEBUG] Using fly-client-ip: ${fly}`);
+		return fly;
+	}
+	if (xClient) {
+		console.log(`✅ [IP-DEBUG] Using x-client-ip: ${xClient}`);
+		return xClient;
+	}
 
 	// Handle x-forwarded-for (can contain multiple IPs)
 	if (xff) {
 		const firstIP = xff.split(',')[0]?.trim();
-		if (firstIP) return firstIP;
+		if (firstIP) {
+			console.log(`✅ [IP-DEBUG] Using x-forwarded-for first IP: ${firstIP}`);
+			return firstIP;
+		}
 	}
 
 	// Fallback to direct connection (even if localhost)
+	console.log(`⚠️ [IP-DEBUG] Falling back to direct connection: ${direct ?? 'unknown'}`);
 	return direct ?? '';
 }
 
