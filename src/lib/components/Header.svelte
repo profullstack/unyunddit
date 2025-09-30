@@ -29,6 +29,13 @@
 		margin-bottom: 30px;
 		padding-bottom: 20px;
 		border-bottom: 1px solid #333;
+		max-width: 800px;
+		margin-left: auto;
+		margin-right: auto;
+		width: 100%;
+		box-sizing: border-box;
+		padding-left: 20px;
+		padding-right: 20px;
 	}
 
 	.header h1 {
@@ -48,6 +55,11 @@
 		font-size: 1.1rem;
 	}
 	@media (max-width: 600px) {
+		.header {
+			padding-left: 10px;
+			padding-right: 10px;
+		}
+		
 		.header h1 {
 			font-size: 2rem;
 		}
