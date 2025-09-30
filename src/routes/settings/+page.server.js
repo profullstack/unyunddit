@@ -1,30 +1,18 @@
 import { redirect } from '@sveltejs/kit';
-import { getCurrentUser, getUserInfo } from '$lib/auth.js';
+import { getCurrentUserObject } from '$lib/auth.js';
 import { supabase } from '$lib/supabase.js';
 
 /** @type {import('./$types').PageServerLoad} */
 export async function load({ cookies }) {
-	const userId = getCurrentUser(cookies);
+	// Get complete user object from session cookie
+	const result = await getCurrentUserObject(cookies, supabase);
 	
 	// Redirect to auth page with reference if not logged in
-	if (!userId) {
+	if (!result.isAuthenticated) {
 		throw redirect(303, '/auth?ref=/settings');
 	}
 
-	// Get user information from database
-	const userInfo = await getUserInfo(userId, supabase);
-	
-	if (userInfo.error) {
-		// If there's an error getting user info, clear the invalid session and redirect
-		cookies.delete('user_session', { path: '/' });
-		throw redirect(303, '/auth');
-	}
-
 	return {
-		user: {
-			id: userId,
-			username: userInfo.username,
-			created_at: userInfo.created_at
-		}
+		user: result.user
 	};
 }

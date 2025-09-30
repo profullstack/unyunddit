@@ -173,3 +173,51 @@ export async function getUserInfo(userId, supabase) {
 		return { error: 'Failed to get user information' };
 	}
 }
+
+/**
+ * Get current user object from session cookie
+ * @param {object} cookies - SvelteKit cookies object
+ * @param {object} supabase - Supabase client
+ * @returns {Promise<{user?: object, isAuthenticated: boolean, error?: string}>}
+ */
+export async function getCurrentUserObject(cookies, supabase) {
+	try {
+		const userId = getCurrentUser(cookies);
+		
+		if (!userId) {
+			return {
+				user: null,
+				isAuthenticated: false
+			};
+		}
+
+		// Get user information from database
+		const userInfo = await getUserInfo(userId, supabase);
+		
+		if (userInfo.error) {
+			// Clear invalid session
+			cookies.delete('user_session', { path: '/' });
+			return {
+				user: null,
+				isAuthenticated: false,
+				error: userInfo.error
+			};
+		}
+
+		return {
+			user: {
+				id: userId,
+				username: userInfo.username,
+				created_at: userInfo.created_at
+			},
+			isAuthenticated: true
+		};
+	} catch (err) {
+		console.error('Get current user object error:', err);
+		return {
+			user: null,
+			isAuthenticated: false,
+			error: 'Failed to get user information'
+		};
+	}
+}
