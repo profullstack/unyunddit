@@ -20,6 +20,10 @@ value = "production"
 
 [[deploy.variables]]
 name = "PORT"
+value = "8000"
+
+[[deploy.variables]]
+name = "NGINX_PORT"
 value = "8080"
 
 # Supabase environment variables (set these in Railway dashboard)

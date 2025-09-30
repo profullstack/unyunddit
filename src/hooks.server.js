@@ -26,9 +26,19 @@ function getClientIP(event) {
 	const ak = headers.get('true-client-ip');             // Akamai
 	const fly = headers.get('fly-client-ip');             // Fly.io
 	const xClient = headers.get('x-client-ip');           // Generic proxy
+	const railwayForwarded = headers.get('x-forwarded-for'); // Railway specific
+	const originalIP = headers.get('x-original-forwarded-for'); // Some load balancers
 
-	// Debug all headers
-	const allHeaders = { xff, real, cf, ak, fly, xClient };
+	// Debug ALL headers to understand what Railway is sending
+	console.log(`🔍 [IP-DEBUG] ALL HEADERS:`);
+	for (const [key, value] of headers.entries()) {
+		if (key.toLowerCase().includes('forward') || key.toLowerCase().includes('real') || key.toLowerCase().includes('client') || key.toLowerCase().includes('ip')) {
+			console.log(`   ${key}: ${value}`);
+		}
+	}
+
+	// Debug specific headers
+	const allHeaders = { xff, real, cf, ak, fly, xClient, railwayForwarded, originalIP };
 	const presentHeaders = Object.fromEntries(Object.entries(allHeaders).filter(([k, v]) => v));
 	if (Object.keys(presentHeaders).length > 0) {
 		console.log(`🔍 [IP-DEBUG] Found proxy headers:`, presentHeaders);
