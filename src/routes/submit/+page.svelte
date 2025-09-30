@@ -216,8 +216,8 @@
 	}
 
 	.auth-suggestion {
-		background-color: #2a3a4a;
-		border: 1px solid #4a90e2;
+		background-color: #4a3a2a;
+		border: 1px solid #ff6b35;
 		border-radius: 4px;
 		padding: 15px;
 		margin-bottom: 20px;
@@ -225,11 +225,11 @@
 
 	.auth-suggestion p {
 		margin: 0;
-		color: #b3d9ff;
+		color: #ffcc99;
 	}
 
 	.auth-suggestion a {
-		color: #4a90e2;
+		color: #ff6b35;
 		text-decoration: none;
 		font-weight: bold;
 	}

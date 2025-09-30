@@ -1,32 +1,11 @@
 <script>
-	import { enhance } from '$app/forms';
-	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 
 	/** @type {import('./$types').ActionData} */
 	export let form;
 
-	let isLogin = true;
-	let loading = false;
-
-	// Switch between login and register modes
-	function toggleMode() {
-		isLogin = !isLogin;
-		form = null; // Clear any previous form errors
-	}
-
-	// Handle form submission
-	function handleSubmit() {
-		loading = true;
-		return async ({ result, update }) => {
-			loading = false;
-			if (result.type === 'redirect') {
-				goto(result.location);
-			} else {
-				await update();
-			}
-		};
-	}
+	// Determine if we're in register mode based on URL parameter
+	$: isLogin = $page.url.searchParams.get('mode') !== 'register';
 </script>
 
 <svelte:head>
@@ -43,16 +22,9 @@
 			</div>
 		{/if}
 
-		{#if form?.success}
-			<div class="success-message">
-				{form.message}
-			</div>
-		{/if}
-
 		<form 
 			method="POST" 
 			action="?/{isLogin ? 'login' : 'register'}"
-			use:enhance={handleSubmit}
 		>
 			<div class="form-group">
 				<label for="username">Username</label>
@@ -64,7 +36,6 @@
 					minlength="3"
 					maxlength="50"
 					placeholder="Enter your username"
-					disabled={loading}
 				/>
 				<small>3-50 characters</small>
 			</div>
@@ -78,31 +49,26 @@
 					required
 					minlength="6"
 					placeholder="Enter your password"
-					disabled={loading}
 				/>
 				<small>Minimum 6 characters</small>
 			</div>
 
-			<button type="submit" class="auth-button" disabled={loading}>
-				{#if loading}
-					{isLogin ? 'Logging in...' : 'Registering...'}
-				{:else}
-					{isLogin ? 'Login' : 'Register'}
-				{/if}
+			<button type="submit" class="auth-button">
+				{isLogin ? 'Login' : 'Register'}
 			</button>
 		</form>
 
 		<div class="auth-toggle">
 			{#if isLogin}
 				Don't have an account?
-				<button type="button" class="link-button" on:click={toggleMode}>
+				<a href="/auth?mode=register" class="link-button">
 					Register here
-				</button>
+				</a>
 			{:else}
 				Already have an account?
-				<button type="button" class="link-button" on:click={toggleMode}>
+				<a href="/auth" class="link-button">
 					Login here
-				</button>
+				</a>
 			{/if}
 		</div>
 
@@ -163,13 +129,8 @@
 
 	input:focus {
 		outline: none;
-		border-color: #007bff;
-		box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
-	}
-
-	input:disabled {
-		background-color: #f8f9fa;
-		cursor: not-allowed;
+		border-color: #ff6b35;
+		box-shadow: 0 0 0 2px rgba(255, 107, 53, 0.25);
 	}
 
 	small {
@@ -182,7 +143,7 @@
 	.auth-button {
 		width: 100%;
 		padding: 0.75rem;
-		background-color: #007bff;
+		background-color: #ff6b35;
 		color: white;
 		border: none;
 		border-radius: 4px;
@@ -193,13 +154,8 @@
 		margin-top: 1rem;
 	}
 
-	.auth-button:hover:not(:disabled) {
-		background-color: #0056b3;
-	}
-
-	.auth-button:disabled {
-		background-color: #6c757d;
-		cursor: not-allowed;
+	.auth-button:hover {
+		background-color: #e55a2b;
 	}
 
 	.auth-toggle {
@@ -209,16 +165,13 @@
 	}
 
 	.link-button {
-		background: none;
-		border: none;
-		color: #007bff;
-		cursor: pointer;
+		color: #ff6b35;
 		text-decoration: underline;
 		font-size: inherit;
 	}
 
 	.link-button:hover {
-		color: #0056b3;
+		color: #e55a2b;
 	}
 
 	.error-message {
@@ -228,15 +181,6 @@
 		border-radius: 4px;
 		margin-bottom: 1rem;
 		border: 1px solid #f5c6cb;
-	}
-
-	.success-message {
-		background-color: #d4edda;
-		color: #155724;
-		padding: 0.75rem;
-		border-radius: 4px;
-		margin-bottom: 1rem;
-		border: 1px solid #c3e6cb;
 	}
 
 	.auth-info {
