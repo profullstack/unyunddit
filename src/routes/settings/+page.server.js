@@ -6,9 +6,9 @@ import { supabase } from '$lib/supabase.js';
 export async function load({ cookies }) {
 	const userId = getCurrentUser(cookies);
 	
-	// Redirect to auth page if not logged in
+	// Redirect to auth page with reference if not logged in
 	if (!userId) {
-		throw redirect(303, '/auth');
+		throw redirect(303, '/auth?ref=/settings');
 	}
 
 	// Get user information from database

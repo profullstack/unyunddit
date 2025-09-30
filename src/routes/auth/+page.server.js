@@ -4,7 +4,7 @@ import { supabase } from '$lib/supabase.js';
 
 /** @type {import('./$types').Actions} */
 export const actions = {
-	register: async ({ request, cookies }) => {
+	register: async ({ request, cookies, url }) => {
 		const data = await request.formData();
 		const username = data.get('username')?.toString();
 		const password = data.get('password')?.toString();
@@ -23,11 +23,12 @@ export const actions = {
 			});
 		}
 
-		// Redirect to home page after successful registration
-		throw redirect(303, '/');
+		// Redirect to reference page or home page after successful registration
+		const ref = url.searchParams.get('ref');
+		throw redirect(303, ref || '/');
 	},
 
-	login: async ({ request, cookies }) => {
+	login: async ({ request, cookies, url }) => {
 		const data = await request.formData();
 		const username = data.get('username')?.toString();
 		const password = data.get('password')?.toString();
@@ -46,7 +47,8 @@ export const actions = {
 			});
 		}
 
-		// Redirect to home page after successful login
-		throw redirect(303, '/');
+		// Redirect to reference page or home page after successful login
+		const ref = url.searchParams.get('ref');
+		throw redirect(303, ref || '/');
 	}
 };
