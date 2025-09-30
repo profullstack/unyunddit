@@ -1,6 +1,7 @@
 import { supabase } from '$lib/supabase.js';
 import { error, fail } from '@sveltejs/kit';
 import { handleUpvote, handleDownvote } from '$lib/voting.js';
+import { fetchPostWithVotes } from '$lib/posts.js';
 import { createHash } from 'crypto';
 
 /**
@@ -21,21 +22,10 @@ export async function load({ params }) {
 	}
 
 	try {
-		// Get the post
-		const { data: post, error: postError } = await supabase
-			.from('posts')
-			.select(`
-				*,
-				categories (
-					id,
-					name,
-					slug
-				)
-			`)
-			.eq('id', postId)
-			.single();
-
-		if (postError || !post) {
+		// Get the post with vote counts
+		const post = await fetchPostWithVotes(postId);
+		
+		if (!post) {
 			throw error(404, 'Post not found');
 		}
 

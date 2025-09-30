@@ -1,5 +1,6 @@
 import { error } from '@sveltejs/kit';
-import { getPostsByCategory } from '$lib/categories.js';
+import { getCategoryBySlug } from '$lib/categories.js';
+import { fetchPostsWithVotes } from '$lib/posts.js';
 import { handleUpvote, handleDownvote } from '$lib/voting.js';
 
 /** @type {import('./$types').PageServerLoad} */
@@ -10,17 +11,28 @@ export async function load({ params, url }) {
 	const offset = (page - 1) * limit;
 
 	try {
-		const { posts, category } = await getPostsByCategory(categorySlug, { limit, offset });
-		
+		// Get the category first
+		const category = await getCategoryBySlug(categorySlug);
 		if (!category) {
 			throw error(404, 'Category not found');
 		}
 
+		// Fetch posts with vote counts for this category
+		const posts = await fetchPostsWithVotes({
+			filters: { category_id: category.id },
+			orderBy: 'created_at',
+			ascending: false,
+			limit
+		});
+
+		// Apply pagination manually since we're using our utility
+		const paginatedPosts = posts.slice(offset, offset + limit);
+
 		return {
-			posts,
+			posts: paginatedPosts,
 			category,
 			currentPage: page,
-			hasMore: posts.length === limit
+			hasMore: paginatedPosts.length === limit
 		};
 	} catch (err) {
 		console.error('Error loading category page:', err);
