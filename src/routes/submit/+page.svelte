@@ -52,7 +52,17 @@
 	<section class="content">
 		<div class="submit-form">
 			<h2>Submit a New Post</h2>
-			<p class="info">Your post will be completely anonymous and will automatically delete after 72 hours.</p>
+			
+			{#if data.isAuthenticated}
+				<div class="auth-info">
+					<p class="info">✅ You are logged in! Your post will persist indefinitely and won't be auto-deleted.</p>
+				</div>
+			{:else}
+				<p class="info">Your post will be completely anonymous and will automatically delete after 72 hours.</p>
+				<div class="auth-suggestion">
+					<p>💡 Want your posts to persist forever? <a href="/auth">Login or Register</a> - no email required!</p>
+				</div>
+			{/if}
 			
 			<div class="content-policy">
 				<strong>⚠️ Content Policy:</strong> No CP allowed or sexual exploitation. Violations will be reported to authorities.
@@ -190,6 +200,42 @@
 	.info {
 		color: #888;
 		margin-bottom: 20px;
+	}
+
+	.auth-info {
+		background-color: #1a4a2e;
+		border: 1px solid #4caf50;
+		border-radius: 4px;
+		padding: 15px;
+		margin-bottom: 20px;
+	}
+
+	.auth-info .info {
+		color: #a8e6a3;
+		margin: 0;
+	}
+
+	.auth-suggestion {
+		background-color: #2a3a4a;
+		border: 1px solid #4a90e2;
+		border-radius: 4px;
+		padding: 15px;
+		margin-bottom: 20px;
+	}
+
+	.auth-suggestion p {
+		margin: 0;
+		color: #b3d9ff;
+	}
+
+	.auth-suggestion a {
+		color: #4a90e2;
+		text-decoration: none;
+		font-weight: bold;
+	}
+
+	.auth-suggestion a:hover {
+		text-decoration: underline;
 	}
 	
 	.content-policy {

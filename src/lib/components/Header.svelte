@@ -1,14 +1,26 @@
 <script>
 	import NavBar from '$lib/components/NavBar.svelte';
+	
 	/** @type {string} */
 	export let currentPage = '';
+	
+	/** @type {object|null} */
+	export let user = null;
+	
+	/** @type {boolean} */
+	export let isAuthenticated = false;
 </script>
 
 <header class="header">
 	<h1>🧅 <a href="/">Unyunddit</a></h1>
-	<p class="tagline">Anonymous Reddit Clone - Posts disappear after 72 hours</p>
+	<p class="tagline">
+		Anonymous Reddit Clone - Posts disappear after 72 hours
+		{#if isAuthenticated}
+			<br><small>✅ Logged in as <strong>{user?.username}</strong> - your posts persist forever!</small>
+		{/if}
+	</p>
     
-	<NavBar {currentPage} />
+	<NavBar {currentPage} username={user?.username} {isAuthenticated} />
 </header>
 
 <style>

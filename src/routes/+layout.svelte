@@ -4,13 +4,15 @@
 	import Footer from '$lib/components/Footer.svelte';
 	import { page } from '$app/stores';
 
-	let { children } = $props();
+	let { children, data } = $props();
 	
 	// Determine current page for header navigation
 	const currentPage = $derived(() => {
 		if ($page.route.id === '/') return 'home';
 		if ($page.route.id === '/submit') return 'submit';
 		if ($page.route.id === '/new') return 'new';
+		if ($page.route.id === '/popular') return 'popular';
+		if ($page.route.id === '/auth') return 'auth';
 		return '';
 	});
 </script>
@@ -20,7 +22,11 @@
 </svelte:head>
 
 <div class="app">
-	<Header currentPage={currentPage()} />
+	<Header
+		currentPage={currentPage()}
+		user={data?.user}
+		isAuthenticated={data?.isAuthenticated || false}
+	/>
 	
 	<main class="main-content">
 		{@render children?.()}

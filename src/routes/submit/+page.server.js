@@ -1,18 +1,22 @@
 import { supabase } from '$lib/supabase.js';
 import { fail, redirect } from '@sveltejs/kit';
 import { getAllCategories, suggestCategories } from '$lib/categories.js';
+import { getCurrentUser } from '$lib/auth.js';
 
 /** @type {import('./$types').PageServerLoad} */
-export async function load() {
+export async function load({ cookies }) {
 	const categories = await getAllCategories();
+	const userId = getCurrentUser(cookies);
+	
 	return {
-		categories
+		categories,
+		isAuthenticated: !!userId
 	};
 }
 
 /** @type {import('./$types').Actions} */
 export const actions = {
-	submit: async ({ request }) => {
+	submit: async ({ request, cookies }) => {
 		try {
 			const data = await request.formData();
 			const title = data.get('title')?.toString().trim();
@@ -109,6 +113,9 @@ export const actions = {
 				finalCategoryId = parseInt(categoryId);
 			}
 
+			// Get current user ID if authenticated
+			const userId = getCurrentUser(cookies);
+
 			// Insert post into database
 			const { data: post, error } = await supabase
 				.from('posts')
@@ -116,7 +123,8 @@ export const actions = {
 					title,
 					url: url || null,
 					content: content || null,
-					category_id: finalCategoryId
+					category_id: finalCategoryId,
+					user_id: userId || null
 				})
 				.select()
 				.single();
