@@ -1,10 +1,15 @@
 <script>
+	import { page } from '$app/stores';
+	
 	/** @type {Object} */
 	export let post;
 	/** @type {boolean} */
 	export let showVoting = false;
 	/** @type {boolean} */
 	export let linkToExternal = false;
+	
+	// Get current page path for form actions
+	$: currentPath = $page.url.pathname;
 
 	function getDomain(url) {
 		if (!url) return '';
@@ -30,12 +35,12 @@
 <article class="post">
 	{#if showVoting}
 		<div class="post-votes">
-			<form method="POST" action="/?/upvote" class="vote-form">
+			<form method="POST" action="{currentPath}?/upvote" class="vote-form">
 				<input type="hidden" name="postId" value={post.id} />
 				<button type="submit" class="vote-btn upvote" title="Upvote">▲</button>
 			</form>
 			<span class="score">{post.upvotes - post.downvotes}</span>
-			<form method="POST" action="/?/downvote" class="vote-form">
+			<form method="POST" action="{currentPath}?/downvote" class="vote-form">
 				<input type="hidden" name="postId" value={post.id} />
 				<button type="submit" class="vote-btn downvote" title="Downvote">▼</button>
 			</form>

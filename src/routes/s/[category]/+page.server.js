@@ -1,5 +1,6 @@
 import { error } from '@sveltejs/kit';
 import { getPostsByCategory } from '$lib/categories.js';
+import { handleUpvote, handleDownvote } from '$lib/voting.js';
 
 /** @type {import('./$types').PageServerLoad} */
 export async function load({ params, url }) {
@@ -26,3 +27,9 @@ export async function load({ params, url }) {
 		throw error(500, 'Failed to load category posts');
 	}
 }
+
+/** @type {import('./$types').Actions} */
+export const actions = {
+	upvote: handleUpvote,
+	downvote: handleDownvote
+};

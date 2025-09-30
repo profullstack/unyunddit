@@ -1,5 +1,6 @@
 import { supabase } from '$lib/supabase.js';
 import { error, fail } from '@sveltejs/kit';
+import { handleUpvote, handleDownvote } from '$lib/voting.js';
 import { createHash } from 'crypto';
 
 /**
@@ -12,7 +13,7 @@ function hashIP(ip) {
 }
 
 /** @type {import('./$types').PageServerLoad} */
-export async function load({ params, getClientAddress }) {
+export async function load({ params }) {
 	const postId = params.id?.toString()?.trim();
 	
 	if (!postId) {
@@ -61,9 +62,12 @@ export async function load({ params, getClientAddress }) {
 
 /** @type {import('./$types').Actions} */
 export const actions = {
-	comment: async ({ request, params, getClientAddress }) => {
+	upvote: handleUpvote,
+	downvote: handleDownvote,
+	
+	comment: async ({ request, params, locals }) => {
 		const postId = params.id?.toString()?.trim();
-		const clientIP = getClientAddress();
+		const clientIP = locals.ip;
 		
 		if (!postId) {
 			return fail(400, { error: 'Invalid post ID' });
