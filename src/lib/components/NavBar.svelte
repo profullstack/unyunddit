@@ -18,11 +18,13 @@
 	</div>
 	
 	<div class="nav-right">
-		{#if isAuthenticated && username}
-			<span class="user-info">👤 {username}</span>
-			<form method="POST" action="/logout" class="logout-form">
-				<button type="submit" class="logout-button">Logout</button>
-			</form>
+		<!-- Debug info (remove in production) -->
+		<!-- Auth: {isAuthenticated}, User: {username} -->
+		
+		{#if isAuthenticated}
+			<a href="/settings" class="nav-link settings-link" class:active={currentPage === 'settings'}>
+				Settings ({username})
+			</a>
 		{:else}
 			<a href="/auth" class="nav-link auth-link" class:active={currentPage === 'auth'}>
 				Login / Register
@@ -34,20 +36,24 @@
 <style>
 	.nav {
 		display: flex;
-		justify-content: space-between;
+		justify-content: center;
 		align-items: center;
-		gap: 20px;
+		gap: 15px;
 		position: relative;
+		flex-wrap: wrap;
 	}
 
 	.nav-left {
 		display: flex;
-		gap: 20px;
+		gap: 15px;
+		flex-wrap: wrap;
 	}
 
 	.nav-right {
 		display: flex;
 		align-items: center;
+		gap: 10px;
+		flex-wrap: wrap;
 	}
 
 	.nav-link {
@@ -68,39 +74,14 @@
 		color: white;
 	}
 
-	.auth-link {
+	.auth-link,
+	.settings-link {
 		background-color: #ff6b35;
 		color: white !important;
 	}
 
-	.auth-link:hover {
-		background-color: #e55a2b;
-	}
-
-	.user-info {
-		color: #ccc;
-		padding: 8px 16px;
-		border-radius: 4px;
-		background-color: #333;
-		margin-right: 10px;
-	}
-
-	.logout-form {
-		display: inline;
-	}
-
-	.logout-button {
-		background: #ff6b35;
-		border: none;
-		color: white;
-		padding: 8px 16px;
-		cursor: pointer;
-		transition: background-color 0.2s;
-		border-radius: 4px;
-		font-size: inherit;
-	}
-
-	.logout-button:hover {
+	.auth-link:hover,
+	.settings-link:hover {
 		background-color: #e55a2b;
 	}
 
@@ -108,32 +89,34 @@
 		.nav {
 			flex-direction: column;
 			align-items: center;
-			gap: 15px;
+			gap: 10px;
 		}
 
 		.nav-left {
-			gap: 15px;
+			gap: 10px;
 		}
 
 		.nav-right {
-			margin-top: 10px;
+			gap: 8px;
 		}
 
-		.user-info {
-			margin-right: 5px;
-			margin-bottom: 5px;
-		}
+		/* No additional mobile styles needed for simplified layout */
 	}
 
 	@media (max-width: 600px) {
 		.nav-left {
 			flex-direction: column;
 			align-items: center;
-			gap: 10px;
+			gap: 8px;
 		}
 
 		.nav {
-			gap: 10px;
+			gap: 8px;
+		}
+
+		.nav-link {
+			padding: 6px 12px;
+			font-size: 0.9rem;
 		}
 	}
 </style>

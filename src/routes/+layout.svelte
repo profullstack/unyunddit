@@ -13,6 +13,7 @@
 		if ($page.route.id === '/new') return 'new';
 		if ($page.route.id === '/popular') return 'popular';
 		if ($page.route.id === '/auth') return 'auth';
+		if ($page.route.id === '/settings') return 'settings';
 		return '';
 	});
 </script>
