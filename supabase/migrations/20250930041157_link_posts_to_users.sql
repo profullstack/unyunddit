@@ -13,31 +13,8 @@ ADD COLUMN user_id UUID REFERENCES public.users(id) ON DELETE SET NULL;
 CREATE INDEX IF NOT EXISTS idx_posts_user_id ON public.posts(user_id);
 CREATE INDEX IF NOT EXISTS idx_comments_user_id ON public.comments(user_id);
 
--- Update cleanup function to preserve posts from authenticated users
-CREATE OR REPLACE FUNCTION cleanup_expired_content()
-RETURNS INTEGER AS $$
-DECLARE
-    deleted_count INTEGER := 0;
-BEGIN
-    -- Delete expired posts ONLY if they are anonymous (user_id IS NULL)
-    -- Authenticated user posts are preserved indefinitely
-    DELETE FROM public.posts 
-    WHERE expires_at <= timezone('utc'::text, now()) 
-    AND user_id IS NULL;
-    GET DIAGNOSTICS deleted_count = ROW_COUNT;
-    
-    -- Delete expired comments ONLY if they are anonymous (user_id IS NULL)
-    -- Authenticated user comments are preserved indefinitely
-    DELETE FROM public.comments 
-    WHERE expires_at <= timezone('utc'::text, now()) 
-    AND user_id IS NULL;
-    
-    -- Delete any orphaned votes (shouldn't happen due to cascade, but safety)
-    DELETE FROM public.votes WHERE expires_at <= timezone('utc'::text, now());
-    
-    RETURN deleted_count;
-END;
-$$ LANGUAGE plpgsql;
+-- Note: cleanup function update moved to separate migration (20250930042935_fix_cleanup_function.sql)
+-- to properly handle function signature changes
 
 -- Update policies to allow users to see their own posts even if expired
 DROP POLICY IF EXISTS "Anyone can read non-expired posts" ON public.posts;
