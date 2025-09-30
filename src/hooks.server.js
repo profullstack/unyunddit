@@ -2,35 +2,41 @@
 // Implements strict CSP and privacy headers
 
 /**
- * Get the real client IP address, handling various proxy configurations
- * @param {Request} request - The request object
- * @param {Function} getClientAddress - SvelteKit's getClientAddress function
+ * Get the real client IP address following SvelteKit 5 best practices
+ * @param {import('@sveltejs/kit').RequestEvent} event - The SvelteKit event object
  * @returns {string} The client IP address
  */
-function getRealClientIP(request, getClientAddress) {
-	// Check various proxy headers in order of preference
-	const forwardedFor = request.headers.get('x-forwarded-for');
-	const realIP = request.headers.get('x-real-ip');
-	const cfConnectingIP = request.headers.get('cf-connecting-ip'); // Cloudflare
-	const trueClientIP = request.headers.get('true-client-ip'); // Some CDNs
-	const xClientIP = request.headers.get('x-client-ip'); // Some proxies
-	
-	// x-forwarded-for can contain multiple IPs, take the first (original client)
-	if (forwardedFor) {
-		const firstIP = forwardedFor.split(',')[0]?.trim();
-		if (firstIP && firstIP !== '127.0.0.1' && firstIP !== 'localhost') {
-			return firstIP;
-		}
+function getClientIP(event) {
+	// 1) Try direct connection first (no proxy)
+	const direct = event.getClientAddress?.();
+	if (direct && direct !== '127.0.0.1' && direct !== '::1') {
+		return direct;
 	}
-	
-	// Check other headers
-	if (realIP && realIP !== '127.0.0.1' && realIP !== 'localhost') return realIP;
-	if (cfConnectingIP && cfConnectingIP !== '127.0.0.1') return cfConnectingIP;
-	if (trueClientIP && trueClientIP !== '127.0.0.1') return trueClientIP;
-	if (xClientIP && xClientIP !== '127.0.0.1') return xClientIP;
-	
-	// Fallback to SvelteKit's getClientAddress
-	return getClientAddress();
+
+	// 2) Check common proxy/CDN headers in order of preference
+	const headers = event.request.headers;
+	const xff = headers.get('x-forwarded-for');           // "client, proxy1, proxy2"
+	const real = headers.get('x-real-ip');
+	const cf = headers.get('cf-connecting-ip');           // Cloudflare
+	const ak = headers.get('true-client-ip');             // Akamai
+	const fly = headers.get('fly-client-ip');             // Fly.io
+	const xClient = headers.get('x-client-ip');           // Generic proxy
+
+	// Check single-value headers first (more reliable)
+	if (real) return real;
+	if (cf) return cf;
+	if (ak) return ak;
+	if (fly) return fly;
+	if (xClient) return xClient;
+
+	// Handle x-forwarded-for (can contain multiple IPs)
+	if (xff) {
+		const firstIP = xff.split(',')[0]?.trim();
+		if (firstIP) return firstIP;
+	}
+
+	// Fallback to direct connection (even if localhost)
+	return direct ?? '';
 }
 
 /** @type {import('@sveltejs/kit').Handle} */
@@ -38,8 +44,11 @@ export async function handle({ event, resolve }) {
 	// Log incoming requests for Tor debugging
 	const startTime = Date.now();
 	
-	// Get real client IP using improved detection
-	const clientIP = getRealClientIP(event.request, event.getClientAddress);
+	// Get real client IP using SvelteKit 5 best practices
+	const clientIP = getClientIP(event);
+	
+	// Make IP available to routes via event.locals
+	event.locals.ip = clientIP;
 	
 	const userAgent = event.request.headers.get('user-agent') || 'Unknown';
 	const method = event.request.method;
@@ -51,6 +60,7 @@ export async function handle({ event, resolve }) {
 		'x-real-ip': event.request.headers.get('x-real-ip'),
 		'cf-connecting-ip': event.request.headers.get('cf-connecting-ip'),
 		'true-client-ip': event.request.headers.get('true-client-ip'),
+		'fly-client-ip': event.request.headers.get('fly-client-ip'),
 		'x-client-ip': event.request.headers.get('x-client-ip')
 	};
 	const activeHeaders = Object.fromEntries(Object.entries(proxyHeaders).filter(([k, v]) => v));

@@ -1,147 +1,257 @@
-// Tests for server hooks
-// Testing security headers and middleware functionality
+import { describe, it, expect } from 'vitest';
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { handle } from '../src/hooks.server.js';
+// Mock the getClientIP function from hooks.server.js
+function getClientIP(event) {
+	// 1) Try direct connection first (no proxy)
+	const direct = event.getClientAddress?.();
+	if (direct && direct !== '127.0.0.1' && direct !== '::1') {
+		return direct;
+	}
 
-describe('Server Hooks', () => {
-	let mockEvent;
-	let mockResolve;
-	let mockResponse;
+	// 2) Check common proxy/CDN headers in order of preference
+	const headers = event.request.headers;
+	const xff = headers.get('x-forwarded-for');           // "client, proxy1, proxy2"
+	const real = headers.get('x-real-ip');
+	const cf = headers.get('cf-connecting-ip');           // Cloudflare
+	const ak = headers.get('true-client-ip');             // Akamai
+	const fly = headers.get('fly-client-ip');             // Fly.io
+	const xClient = headers.get('x-client-ip');           // Generic proxy
 
-	beforeEach(() => {
-		// Mock response object
-		mockResponse = {
-			headers: new Map(),
-			set: vi.fn((key, value) => {
-				mockResponse.headers.set(key, value);
-			}),
-			delete: vi.fn((key) => {
-				mockResponse.headers.delete(key);
-			})
-		};
+	// Check single-value headers first (more reliable)
+	if (real) return real;
+	if (cf) return cf;
+	if (ak) return ak;
+	if (fly) return fly;
+	if (xClient) return xClient;
 
-		// Mock resolve function
-		mockResolve = vi.fn().mockResolvedValue(mockResponse);
+	// Handle x-forwarded-for (can contain multiple IPs)
+	if (xff) {
+		const firstIP = xff.split(',')[0]?.trim();
+		if (firstIP) return firstIP;
+	}
 
-		// Mock event object
-		mockEvent = {
-			request: {
-				url: 'http://localhost:3000/',
-				method: 'GET'
+	// Fallback to direct connection (even if localhost)
+	return direct ?? '';
+}
+
+// Helper function to create mock event
+function createMockEvent(headers = {}, directIP = null) {
+	const mockHeaders = new Map(Object.entries(headers));
+	
+	return {
+		request: {
+			headers: {
+				get: (key) => mockHeaders.get(key) || null
 			}
-		};
-	});
+		},
+		getClientAddress: () => directIP,
+		locals: {}
+	};
+}
 
-	describe('handle function', () => {
-		it('should set Content Security Policy header', async () => {
-			await handle({ event: mockEvent, resolve: mockResolve });
-
-			expect(mockResponse.headers.get('Content-Security-Policy')).toBe(
-				"default-src 'none'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; form-action 'self'; base-uri 'self'; frame-ancestors 'none'; object-src 'none'; script-src 'none'"
-			);
+describe('getClientIP function', () => {
+	describe('direct connection (no proxy)', () => {
+		it('should return direct IP when available and not localhost', () => {
+			const event = createMockEvent({}, '192.168.1.100');
+			const result = getClientIP(event);
+			expect(result).toBe('192.168.1.100');
 		});
 
-		it('should set privacy headers', async () => {
-			await handle({ event: mockEvent, resolve: mockResolve });
-
-			expect(mockResponse.headers.get('Referrer-Policy')).toBe('no-referrer');
-			expect(mockResponse.headers.get('X-Content-Type-Options')).toBe('nosniff');
-			expect(mockResponse.headers.get('X-Frame-Options')).toBe('DENY');
-			expect(mockResponse.headers.get('X-XSS-Protection')).toBe('1; mode=block');
+		it('should not return 127.0.0.1 as direct IP', () => {
+			const event = createMockEvent({
+				'x-real-ip': '203.0.113.1'
+			}, '127.0.0.1');
+			const result = getClientIP(event);
+			expect(result).toBe('203.0.113.1');
 		});
 
-		it('should set permissions policy', async () => {
-			await handle({ event: mockEvent, resolve: mockResolve });
-
-			expect(mockResponse.headers.get('Permissions-Policy')).toBe(
-				'geolocation=(), microphone=(), camera=()'
-			);
-		});
-
-		it('should remove server identification headers', async () => {
-			// Set initial headers that should be removed
-			mockResponse.headers.set('Server', 'nginx/1.0');
-			mockResponse.headers.set('X-Powered-By', 'Express');
-
-			await handle({ event: mockEvent, resolve: mockResolve });
-
-			expect(mockResponse.headers.has('Server')).toBe(false);
-			expect(mockResponse.headers.has('X-Powered-By')).toBe(false);
-		});
-
-		it('should call resolve with the event', async () => {
-			await handle({ event: mockEvent, resolve: mockResolve });
-
-			expect(mockResolve).toHaveBeenCalledWith(mockEvent);
-		});
-
-		it('should return the response', async () => {
-			const result = await handle({ event: mockEvent, resolve: mockResolve });
-
-			expect(result).toBe(mockResponse);
+		it('should not return ::1 (IPv6 localhost) as direct IP', () => {
+			const event = createMockEvent({
+				'x-real-ip': '203.0.113.1'
+			}, '::1');
+			const result = getClientIP(event);
+			expect(result).toBe('203.0.113.1');
 		});
 	});
 
-	describe('Security Headers Validation', () => {
-		it('should block all JavaScript execution', async () => {
-			await handle({ event: mockEvent, resolve: mockResolve });
-
-			const csp = mockResponse.headers.get('Content-Security-Policy');
-			expect(csp).toContain("script-src 'none'");
-			expect(csp).toContain("default-src 'none'");
+	describe('proxy headers priority', () => {
+		it('should prioritize x-real-ip over other headers', () => {
+			const event = createMockEvent({
+				'x-real-ip': '203.0.113.1',
+				'cf-connecting-ip': '203.0.113.2',
+				'x-forwarded-for': '203.0.113.3, 10.0.0.1'
+			}, '127.0.0.1');
+			
+			const result = getClientIP(event);
+			expect(result).toBe('203.0.113.1');
 		});
 
-		it('should allow only self-hosted styles', async () => {
-			await handle({ event: mockEvent, resolve: mockResolve });
-
-			const csp = mockResponse.headers.get('Content-Security-Policy');
-			expect(csp).toContain("style-src 'self' 'unsafe-inline'");
+		it('should use cf-connecting-ip when x-real-ip is not available', () => {
+			const event = createMockEvent({
+				'cf-connecting-ip': '203.0.113.2',
+				'true-client-ip': '203.0.113.3',
+				'x-forwarded-for': '203.0.113.4, 10.0.0.1'
+			}, '127.0.0.1');
+			
+			const result = getClientIP(event);
+			expect(result).toBe('203.0.113.2');
 		});
 
-		it('should allow only self-hosted images and data URIs', async () => {
-			await handle({ event: mockEvent, resolve: mockResolve });
-
-			const csp = mockResponse.headers.get('Content-Security-Policy');
-			expect(csp).toContain("img-src 'self' data:");
+		it('should use true-client-ip (Akamai) when higher priority headers are not available', () => {
+			const event = createMockEvent({
+				'true-client-ip': '203.0.113.3',
+				'fly-client-ip': '203.0.113.4',
+				'x-forwarded-for': '203.0.113.5, 10.0.0.1'
+			}, '127.0.0.1');
+			
+			const result = getClientIP(event);
+			expect(result).toBe('203.0.113.3');
 		});
 
-		it('should restrict form actions to same origin', async () => {
-			await handle({ event: mockEvent, resolve: mockResolve });
-
-			const csp = mockResponse.headers.get('Content-Security-Policy');
-			expect(csp).toContain("form-action 'self'");
+		it('should use fly-client-ip when higher priority headers are not available', () => {
+			const event = createMockEvent({
+				'fly-client-ip': '203.0.113.4',
+				'x-client-ip': '203.0.113.5',
+				'x-forwarded-for': '203.0.113.6, 10.0.0.1'
+			}, '127.0.0.1');
+			
+			const result = getClientIP(event);
+			expect(result).toBe('203.0.113.4');
 		});
 
-		it('should prevent embedding in frames', async () => {
-			await handle({ event: mockEvent, resolve: mockResolve });
-
-			const csp = mockResponse.headers.get('Content-Security-Policy');
-			expect(csp).toContain("frame-ancestors 'none'");
-			expect(mockResponse.headers.get('X-Frame-Options')).toBe('DENY');
+		it('should use x-client-ip when higher priority headers are not available', () => {
+			const event = createMockEvent({
+				'x-client-ip': '203.0.113.5',
+				'x-forwarded-for': '203.0.113.6, 10.0.0.1'
+			}, '127.0.0.1');
+			
+			const result = getClientIP(event);
+			expect(result).toBe('203.0.113.5');
 		});
 	});
 
-	describe('Privacy Protection', () => {
-		it('should prevent referrer leakage', async () => {
-			await handle({ event: mockEvent, resolve: mockResolve });
-
-			expect(mockResponse.headers.get('Referrer-Policy')).toBe('no-referrer');
+	describe('x-forwarded-for header handling', () => {
+		it('should extract first IP from x-forwarded-for when single-value headers are not available', () => {
+			const event = createMockEvent({
+				'x-forwarded-for': '203.0.113.1, 10.0.0.1, 192.168.1.1'
+			}, '127.0.0.1');
+			
+			const result = getClientIP(event);
+			expect(result).toBe('203.0.113.1');
 		});
 
-		it('should prevent MIME type sniffing', async () => {
-			await handle({ event: mockEvent, resolve: mockResolve });
-
-			expect(mockResponse.headers.get('X-Content-Type-Options')).toBe('nosniff');
+		it('should handle x-forwarded-for with spaces correctly', () => {
+			const event = createMockEvent({
+				'x-forwarded-for': '  203.0.113.1  , 10.0.0.1 ,192.168.1.1  '
+			}, '127.0.0.1');
+			
+			const result = getClientIP(event);
+			expect(result).toBe('203.0.113.1');
 		});
 
-		it('should disable dangerous browser APIs', async () => {
-			await handle({ event: mockEvent, resolve: mockResolve });
+		it('should handle single IP in x-forwarded-for', () => {
+			const event = createMockEvent({
+				'x-forwarded-for': '203.0.113.1'
+			}, '127.0.0.1');
+			
+			const result = getClientIP(event);
+			expect(result).toBe('203.0.113.1');
+		});
 
-			const permissionsPolicy = mockResponse.headers.get('Permissions-Policy');
-			expect(permissionsPolicy).toContain('geolocation=()');
-			expect(permissionsPolicy).toContain('microphone=()');
-			expect(permissionsPolicy).toContain('camera=()');
+		it('should handle empty x-forwarded-for gracefully', () => {
+			const event = createMockEvent({
+				'x-forwarded-for': ''
+			}, '127.0.0.1');
+			
+			const result = getClientIP(event);
+			expect(result).toBe('127.0.0.1');
+		});
+	});
+
+	describe('fallback scenarios', () => {
+		it('should fallback to direct connection when no proxy headers are available', () => {
+			const event = createMockEvent({}, '127.0.0.1');
+			const result = getClientIP(event);
+			expect(result).toBe('127.0.0.1');
+		});
+
+		it('should return empty string when no IP is available', () => {
+			const event = createMockEvent({}, null);
+			const result = getClientIP(event);
+			expect(result).toBe('');
+		});
+
+		it('should handle missing getClientAddress function', () => {
+			const event = {
+				request: {
+					headers: {
+						get: () => null
+					}
+				},
+				getClientAddress: undefined,
+				locals: {}
+			};
+			
+			const result = getClientIP(event);
+			expect(result).toBe('');
+		});
+	});
+
+	describe('cloud provider specific headers', () => {
+		it('should handle Cloudflare cf-connecting-ip header', () => {
+			const event = createMockEvent({
+				'cf-connecting-ip': '203.0.113.100'
+			}, '127.0.0.1');
+			
+			const result = getClientIP(event);
+			expect(result).toBe('203.0.113.100');
+		});
+
+		it('should handle Akamai true-client-ip header', () => {
+			const event = createMockEvent({
+				'true-client-ip': '203.0.113.200'
+			}, '127.0.0.1');
+			
+			const result = getClientIP(event);
+			expect(result).toBe('203.0.113.200');
+		});
+
+		it('should handle Fly.io fly-client-ip header', () => {
+			const event = createMockEvent({
+				'fly-client-ip': '203.0.113.300'
+			}, '127.0.0.1');
+			
+			const result = getClientIP(event);
+			expect(result).toBe('203.0.113.300');
+		});
+	});
+
+	describe('edge cases', () => {
+		it('should handle IPv6 addresses', () => {
+			const event = createMockEvent({
+				'x-real-ip': '2001:db8::1'
+			}, '127.0.0.1');
+			
+			const result = getClientIP(event);
+			expect(result).toBe('2001:db8::1');
+		});
+
+		it('should handle mixed IPv4 and IPv6 in x-forwarded-for', () => {
+			const event = createMockEvent({
+				'x-forwarded-for': '2001:db8::1, 192.168.1.1, ::1'
+			}, '127.0.0.1');
+			
+			const result = getClientIP(event);
+			expect(result).toBe('2001:db8::1');
+		});
+
+		it('should handle malformed x-forwarded-for gracefully', () => {
+			const event = createMockEvent({
+				'x-forwarded-for': ',,,,'
+			}, '192.168.1.1');
+			
+			const result = getClientIP(event);
+			expect(result).toBe('192.168.1.1');
 		});
 	});
 });

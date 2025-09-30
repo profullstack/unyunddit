@@ -95,37 +95,6 @@ export async function load() {
 	}
 }
 
-/**
- * Get the real client IP address, handling various proxy configurations
- * @param {Request} request - The request object
- * @param {Function} getClientAddress - SvelteKit's getClientAddress function
- * @returns {string} The client IP address
- */
-function getRealClientIP(request, getClientAddress) {
-	// Check various proxy headers in order of preference
-	const forwardedFor = request.headers.get('x-forwarded-for');
-	const realIP = request.headers.get('x-real-ip');
-	const cfConnectingIP = request.headers.get('cf-connecting-ip'); // Cloudflare
-	const trueClientIP = request.headers.get('true-client-ip'); // Some CDNs
-	const xClientIP = request.headers.get('x-client-ip'); // Some proxies
-	
-	// x-forwarded-for can contain multiple IPs, take the first (original client)
-	if (forwardedFor) {
-		const firstIP = forwardedFor.split(',')[0]?.trim();
-		if (firstIP && firstIP !== '127.0.0.1' && firstIP !== 'localhost') {
-			return firstIP;
-		}
-	}
-	
-	// Check other headers
-	if (realIP && realIP !== '127.0.0.1' && realIP !== 'localhost') return realIP;
-	if (cfConnectingIP && cfConnectingIP !== '127.0.0.1') return cfConnectingIP;
-	if (trueClientIP && trueClientIP !== '127.0.0.1') return trueClientIP;
-	if (xClientIP && xClientIP !== '127.0.0.1') return xClientIP;
-	
-	// Fallback to SvelteKit's getClientAddress
-	return getClientAddress();
-}
 
 /**
  * Hash IP address for anonymous voting while preventing double voting
@@ -138,7 +107,7 @@ function hashIP(ip) {
 
 /** @type {import('./$types').Actions} */
 export const actions = {
-	upvote: async ({ request, getClientAddress }) => {
+	upvote: async ({ request, locals }) => {
 		const data = await request.formData();
 		const postId = data.get('postId');
 		
@@ -147,21 +116,11 @@ export const actions = {
 		}
 
 		try {
-			// Get real client IP using improved detection
-			const clientIP = getRealClientIP(request, getClientAddress);
+			// Get client IP from event.locals (set by hooks.server.js)
+			const clientIP = locals.ip;
 			const ipHash = hashIP(clientIP);
 			
-			// Log all relevant headers for debugging
-			const headers = {
-				'x-forwarded-for': request.headers.get('x-forwarded-for'),
-				'x-real-ip': request.headers.get('x-real-ip'),
-				'cf-connecting-ip': request.headers.get('cf-connecting-ip'),
-				'true-client-ip': request.headers.get('true-client-ip'),
-				'x-client-ip': request.headers.get('x-client-ip')
-			};
-			
 			console.log(`Vote request from IP: ${clientIP} (hash: ${ipHash.substring(0, 8)}...)`);
-			console.log('Proxy headers:', Object.fromEntries(Object.entries(headers).filter(([k, v]) => v)));
 
 			// Check if user already voted on this post
 			const { data: existingVote, error: voteCheckError } = await supabase
@@ -260,7 +219,7 @@ export const actions = {
 		throw redirect(302, redirectUrl);
 	},
 
-	downvote: async ({ request, getClientAddress }) => {
+	downvote: async ({ request, locals }) => {
 		const data = await request.formData();
 		const postId = data.get('postId');
 		
@@ -269,8 +228,8 @@ export const actions = {
 		}
 
 		try {
-			// Get real client IP using improved detection
-			const clientIP = getRealClientIP(request, getClientAddress);
+			// Get client IP from event.locals (set by hooks.server.js)
+			const clientIP = locals.ip;
 			const ipHash = hashIP(clientIP);
 			
 			// Log all relevant headers for debugging
