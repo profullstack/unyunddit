@@ -17,7 +17,7 @@
 		{#if posts && posts.length > 0}
 			<div class="posts">
 				{#each posts as post}
-					<PostCard {post} showVoting={true} votingAction="/" />
+					<PostCard {post} showVoting={true} />
 				{/each}
 			</div>
 		{:else}

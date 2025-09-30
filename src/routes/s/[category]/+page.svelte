@@ -31,7 +31,7 @@
 		{:else}
 			<div class="posts">
 				{#each data.posts as post}
-					<PostCard {post} showVoting={true} votingAction="/" />
+					<PostCard {post} showVoting={true} />
 				{/each}
 			</div>
 
