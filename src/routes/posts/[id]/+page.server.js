@@ -3,6 +3,16 @@ import { error, fail } from '@sveltejs/kit';
 import { handleUpvote, handleDownvote } from '$lib/voting.js';
 import { fetchPostWithVotes } from '$lib/posts.js';
 import { getFingerprint } from '$lib/fingerprint.js';
+import { createHash } from 'crypto';
+
+/**
+ * Hash IP address for backward compatibility during migration
+ * @param {string} ip - IP address to hash
+ * @returns {string} SHA256 hash of the IP address
+ */
+function hashIP(ip) {
+	return createHash('sha256').update(ip).digest('hex');
+}
 
 /** @type {import('./$types').PageServerLoad} */
 export async function load({ params }) {
@@ -48,6 +58,7 @@ export const actions = {
 	
 	comment: async ({ request, params, locals }) => {
 		const postId = params.id?.toString()?.trim();
+		const clientIP = locals.ip;
 		const browserFingerprint = getFingerprint(locals);
 		
 		if (!postId) {
@@ -93,10 +104,11 @@ export const actions = {
 				}
 			}
 
-			// Insert comment
+			// Insert comment (provide both author_ip and browser_fingerprint for transition)
 			const commentData = {
 				post_id: postId,
 				content,
+				author_ip: clientIP,
 				browser_fingerprint: browserFingerprint,
 				parent_id: parentId && parentId !== '' ? parentId : null
 			};
