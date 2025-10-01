@@ -2,6 +2,8 @@ import { supabase } from '$lib/supabase.js';
 import { fail, redirect } from '@sveltejs/kit';
 import { getAllCategories, suggestCategories } from '$lib/categories.js';
 import { getCurrentUser } from '$lib/auth.js';
+import { SocksProxyAgent } from 'socks-proxy-agent';
+import { fetch as undiciFetch } from 'undici';
 
 /** @type {import('./$types').PageServerLoad} */
 export async function load({ cookies, url }) {
@@ -27,6 +29,123 @@ export async function load({ cookies, url }) {
 
 /** @type {import('./$types').Actions} */
 export const actions = {
+	fetchTitle: async ({ request }) => {
+		try {
+			const data = await request.formData();
+			const url = data.get('url')?.toString().trim();
+			const title = data.get('title')?.toString().trim();
+			const content = data.get('content')?.toString().trim();
+			const categoryId = data.get('category_id')?.toString().trim();
+
+			if (!url) {
+				return fail(400, {
+					error: 'URL is required to fetch title',
+					title,
+					url,
+					content,
+					categoryId
+				});
+			}
+
+			// Validate URL format
+			try {
+				new URL(url);
+			} catch {
+				return fail(400, {
+					error: 'Invalid URL format',
+					title,
+					url,
+					content,
+					categoryId
+				});
+			}
+
+			// Create Tor SOCKS proxy agent
+			const torProxy = process.env.TOR_PROXY_URL || 'socks5h://127.0.0.1:9050';
+			const agent = new SocksProxyAgent(torProxy);
+
+			// Fetch the page through Tor
+			const response = await undiciFetch(url, {
+				dispatcher: agent,
+				headers: {
+					'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; rv:109.0) Gecko/20100101 Firefox/115.0'
+				},
+				signal: AbortSignal.timeout(15000) // 15 second timeout
+			});
+
+			if (!response.ok) {
+				return fail(502, {
+					error: `Failed to fetch URL: ${response.status} ${response.statusText}`,
+					title,
+					url,
+					content,
+					categoryId
+				});
+			}
+
+			const html = await response.text();
+
+			// Extract title using regex
+			const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
+			const fetchedTitle = titleMatch ? titleMatch[1].trim() : '';
+
+			if (!fetchedTitle) {
+				return fail(404, {
+					error: 'No title found on the page',
+					title,
+					url,
+					content,
+					categoryId
+				});
+			}
+
+			// Decode HTML entities
+			const decodedTitle = fetchedTitle
+				.replace(/&amp;/g, '&')
+				.replace(/&lt;/g, '<')
+				.replace(/&gt;/g, '>')
+				.replace(/&quot;/g, '"')
+				.replace(/&#039;/g, "'")
+				.replace(/&nbsp;/g, ' ');
+
+			// Return the fetched title along with other form data
+			return {
+				success: true,
+				title: decodedTitle,
+				url,
+				content,
+				categoryId
+			};
+
+		} catch (error) {
+			console.error('Error fetching title:', error);
+			
+			const data = await request.formData();
+			const title = data.get('title')?.toString().trim();
+			const url = data.get('url')?.toString().trim();
+			const content = data.get('content')?.toString().trim();
+			const categoryId = data.get('category_id')?.toString().trim();
+
+			if (error instanceof Error && error.name === 'AbortError') {
+				return fail(504, {
+					error: 'Request timeout - the page took too long to load',
+					title,
+					url,
+					content,
+					categoryId
+				});
+			}
+
+			return fail(500, {
+				error: 'Failed to fetch title. Please check the URL and try again.',
+				title,
+				url,
+				content,
+				categoryId
+			});
+		}
+	},
+
 	submit: async ({ request, cookies }) => {
 		try {
 			const data = await request.formData();

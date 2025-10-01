@@ -81,6 +81,12 @@
 				</div>
 			{/if}
 
+			{#if form?.success}
+				<div class="success">
+					✅ Title fetched successfully!
+				</div>
+			{/if}
+
 			<form method="POST" action="?/submit" class="form">
 				<div class="form-group">
 					<label for="title">Title *</label>
@@ -262,6 +268,15 @@
 		border-radius: 4px;
 		margin-bottom: 20px;
 		border: 1px solid #ff6b6b;
+	}
+
+	.success {
+		background-color: #1a4a1a;
+		color: #6bff6b;
+		padding: 15px;
+		border-radius: 4px;
+		margin-bottom: 20px;
+		border: 1px solid #6bff6b;
 	}
 
 	.form {
