@@ -45,6 +45,8 @@ export async function load({ locals }) {
 				title,
 				category_id,
 				categories (
+					id,
+					name,
 					slug
 				)
 			`)
@@ -59,24 +61,16 @@ export async function load({ locals }) {
 			};
 		}
 
-		// Create a map of posts for quick lookup with category slug
+		// Create a map of posts for quick lookup with full category object
 		const postsMap = new Map(
-			(posts || []).map((p) => {
-				// Handle categories - Supabase returns it as an array
-				let categorySlug = 'general';
-				if (p.categories && Array.isArray(p.categories) && p.categories.length > 0) {
-					categorySlug = p.categories[0].slug || 'general';
+			(posts || []).map((p) => [
+				p.id,
+				{
+					id: p.id,
+					title: p.title,
+					category: p.categories || null
 				}
-				
-				return [
-					p.id,
-					{
-						id: p.id,
-						title: p.title,
-						category: categorySlug
-					}
-				];
-			})
+			])
 		);
 
 		// Attach post data to comments

@@ -22,9 +22,9 @@
 				<article class="comment-card">
 					<div class="comment-header">
 						<span class="comment-time">{comment.created_at}</span>
-						{#if comment.post}
+						{#if comment.post?.category}
 							<span class="comment-category">
-								in <a href="/s/{comment.post.category}">{comment.post.category}</a>
+								in <a href="/s/{comment.post.category.slug}">{comment.post.category.name}</a>
 							</span>
 						{/if}
 					</div>
