@@ -60,14 +60,24 @@
 
 				<div class="form-group">
 					<label for="url">URL (optional)</label>
-					<input
-						type="url"
-						id="url"
-						name="url"
-						maxlength="2000"
-						placeholder="https://example.com"
-						value={form?.url || ''}
-					/>
+					<div class="url-input-group">
+						<input
+							type="url"
+							id="url"
+							name="url"
+							maxlength="2000"
+							placeholder="https://example.com"
+							value={form?.url || ''}
+						/>
+						<button
+							type="submit"
+							formaction="?/fetchTitle"
+							class="fetch-title-btn"
+							title="Fetch page title from URL"
+						>
+							Fetch Title
+						</button>
+					</div>
 					<small>Link to external content (optional)</small>
 				</div>
 
@@ -239,6 +249,32 @@
 		color: #ccc;
 	}
 
+	.url-input-group {
+		display: flex;
+		gap: 10px;
+	}
+
+	.url-input-group input {
+		flex: 1;
+	}
+
+	.fetch-title-btn {
+		background-color: #4a4a4a;
+		color: #e0e0e0;
+		border: 1px solid #666;
+		border-radius: 4px;
+		padding: 12px 20px;
+		font-size: 0.95rem;
+		cursor: pointer;
+		transition: background-color 0.2s, border-color 0.2s;
+		white-space: nowrap;
+	}
+
+	.fetch-title-btn:hover {
+		background-color: #5a5a5a;
+		border-color: #ff6b35;
+	}
+
 	.form-group input,
 	.form-group textarea,
 	.form-group select {
@@ -332,9 +368,16 @@
 			padding: 10px;
 		}
 
-
 		.submit-form {
 			padding: 20px;
+		}
+
+		.url-input-group {
+			flex-direction: column;
+		}
+
+		.fetch-title-btn {
+			width: 100%;
 		}
 
 		.form-actions {
