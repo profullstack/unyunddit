@@ -10,7 +10,14 @@
 	let title = form?.title || '';
 	let url = form?.url || '';
 	let content = form?.content || '';
-	let selectedCategoryId = form?.categoryId || data.preselectedCategoryId || '';
+	let selectedCategoryId = '';
+	
+	// Set the selected category ID reactively to ensure it happens after component initialization
+	$: {
+		if (!selectedCategoryId && (form?.categoryId || data.preselectedCategoryId)) {
+			selectedCategoryId = form?.categoryId || data.preselectedCategoryId || '';
+		}
+	}
 	/** @type {Array<{id: number, name: string, slug: string}>} */
 	let suggestedCategories = [];
 	let showSuggestions = false;
