@@ -52,6 +52,7 @@ export async function register(username, password, supabase, cookies) {
 		// Use secure: false for local development (http://localhost)
 		// In production, this should be true for HTTPS
 		const isProduction = process.env.NODE_ENV === 'production';
+		console.log('🍪 Setting registration cookie - userId:', userId, 'isProduction:', isProduction, 'secure:', isProduction);
 		cookies.set('user_session', userId, {
 			path: '/',
 			maxAge: 60 * 60 * 24 * 30, // 30 days
@@ -59,6 +60,10 @@ export async function register(username, password, supabase, cookies) {
 			secure: isProduction,
 			sameSite: 'strict'
 		});
+		
+		// Verify cookie was set
+		const verifySet = cookies.get('user_session');
+		console.log('🍪 Cookie verification after set:', verifySet ? 'SUCCESS' : 'FAILED');
 
 		return {
 			success: true,
@@ -107,6 +112,7 @@ export async function login(username, password, supabase, cookies) {
 		// Use secure: false for local development (http://localhost)
 		// In production, this should be true for HTTPS
 		const isProduction = process.env.NODE_ENV === 'production';
+		console.log('🍪 Setting login cookie - userId:', userId, 'isProduction:', isProduction, 'secure:', isProduction);
 		cookies.set('user_session', userId, {
 			path: '/',
 			maxAge: 60 * 60 * 24 * 30, // 30 days
@@ -114,6 +120,10 @@ export async function login(username, password, supabase, cookies) {
 			secure: isProduction,
 			sameSite: 'strict'
 		});
+		
+		// Verify cookie was set
+		const verifySet = cookies.get('user_session');
+		console.log('🍪 Cookie verification after set:', verifySet ? 'SUCCESS' : 'FAILED');
 
 		return {
 			success: true,
@@ -189,8 +199,10 @@ export async function getUserInfo(userId, supabase) {
 export async function getCurrentUserObject(cookies, supabase) {
 	try {
 		const userId = getCurrentUser(cookies);
+		console.log('🔍 getCurrentUserObject - userId from cookie:', userId);
 		
 		if (!userId) {
+			console.log('🔍 getCurrentUserObject - No userId, returning not authenticated');
 			return {
 				user: null,
 				isAuthenticated: false
@@ -198,10 +210,13 @@ export async function getCurrentUserObject(cookies, supabase) {
 		}
 
 		// Get user information from database
+		console.log('🔍 getCurrentUserObject - Fetching user info for userId:', userId);
 		const userInfo = await getUserInfo(userId, supabase);
+		console.log('🔍 getCurrentUserObject - userInfo result:', userInfo);
 		
 		if (userInfo.error) {
 			// Clear invalid session
+			console.log('🔍 getCurrentUserObject - Error fetching user, clearing session:', userInfo.error);
 			cookies.delete('user_session', { path: '/' });
 			return {
 				user: null,
@@ -210,6 +225,7 @@ export async function getCurrentUserObject(cookies, supabase) {
 			};
 		}
 
+		console.log('🔍 getCurrentUserObject - Success! Username:', userInfo.username);
 		return {
 			user: {
 				id: userId,
@@ -219,7 +235,7 @@ export async function getCurrentUserObject(cookies, supabase) {
 			isAuthenticated: true
 		};
 	} catch (err) {
-		console.error('Get current user object error:', err);
+		console.error('🔍 getCurrentUserObject - Exception:', err);
 		return {
 			user: null,
 			isAuthenticated: false,
