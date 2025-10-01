@@ -1,33 +1,6 @@
 <script>
-	import { formatDistanceToNow } from 'date-fns';
-
 	let { data } = $props();
 	const { comments } = data;
-
-	/**
-	 * Format a date to relative time (e.g., "2 hours ago")
-	 * @param {string} dateString - ISO date string
-	 * @returns {string} Formatted relative time
-	 */
-	function formatDate(dateString) {
-		try {
-			return formatDistanceToNow(new Date(dateString), { addSuffix: true });
-		} catch (error) {
-			console.error('Error formatting date:', error);
-			return 'recently';
-		}
-	}
-
-	/**
-	 * Truncate text to a maximum length
-	 * @param {string} text - Text to truncate
-	 * @param {number} maxLength - Maximum length
-	 * @returns {string} Truncated text
-	 */
-	function truncate(text, maxLength = 200) {
-		if (text.length <= maxLength) return text;
-		return text.slice(0, maxLength) + '...';
-	}
 </script>
 
 <svelte:head>
@@ -48,7 +21,7 @@
 			{#each comments as comment}
 				<article class="comment-card">
 					<div class="comment-header">
-						<span class="comment-time">{formatDate(comment.created_at)}</span>
+						<span class="comment-time">{comment.created_at}</span>
 						{#if comment.post}
 							<span class="comment-category">
 								in <a href="/s/{comment.post.category}">{comment.post.category}</a>
@@ -57,7 +30,7 @@
 					</div>
 
 					<div class="comment-content">
-						<p>{truncate(comment.content)}</p>
+						<p>{comment.content}</p>
 					</div>
 
 					{#if comment.post}
