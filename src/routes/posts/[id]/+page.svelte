@@ -36,6 +36,15 @@
 		
 		return date.toLocaleDateString();
 	}
+	
+	/**
+	 * Convert URLs in text to clickable hyperlinks
+	 * @param {string} text
+	 */
+	function linkifyUrls(text) {
+		const urlRegex = /(https?:\/\/[^\s]+)/g;
+		return text.replace(urlRegex, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>');
+	}
 </script>
 
 <svelte:head>
@@ -91,7 +100,7 @@
 					{#each data.comments as comment}
 						<div class="comment {getIndentClass(comment.depth)}" id="comment-{comment.id}">
 							<div class="comment-content">
-								{comment.content}
+								{@html linkifyUrls(comment.content)}
 							</div>
 							<div class="comment-meta">
 								<span class="comment-time">{formatDate(comment.created_at)}</span>
@@ -262,6 +271,16 @@
 	.comment-content {
 		margin-bottom: 10px;
 		white-space: pre-wrap;
+		word-break: break-word;
+	}
+	
+	.comment-content :global(a) {
+		color: #ff6b35;
+		text-decoration: underline;
+	}
+	
+	.comment-content :global(a:hover) {
+		color: #e55a2b;
 	}
 
 	.comment-meta {

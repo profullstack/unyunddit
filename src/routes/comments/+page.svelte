@@ -1,6 +1,15 @@
 <script>
 	let { data } = $props();
 	const { comments } = data;
+	
+	/**
+	 * Convert URLs in text to clickable hyperlinks
+	 * @param {string} text
+	 */
+	function linkifyUrls(text) {
+		const urlRegex = /(https?:\/\/[^\s]+)/g;
+		return text.replace(urlRegex, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>');
+	}
 </script>
 
 <svelte:head>
@@ -30,7 +39,7 @@
 					</div>
 
 					<div class="comment-content">
-						<p>{comment.content}</p>
+						<p>{@html linkifyUrls(comment.content)}</p>
 					</div>
 
 					{#if comment.post}
@@ -143,6 +152,16 @@
 		line-height: 1.6;
 		margin: 0;
 		word-wrap: break-word;
+		white-space: pre-wrap;
+	}
+	
+	.comment-content :global(a) {
+		color: #ff6b35;
+		text-decoration: underline;
+	}
+	
+	.comment-content :global(a:hover) {
+		color: #e55a2b;
 	}
 
 	.comment-footer {
