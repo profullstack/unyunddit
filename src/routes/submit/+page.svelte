@@ -50,7 +50,6 @@
 						type="text"
 						id="title"
 						name="title"
-						required
 						maxlength="300"
 						placeholder="Enter your post title..."
 						value={form?.title || ''}
