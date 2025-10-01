@@ -49,8 +49,8 @@ export async function register(username, password, supabase, cookies) {
 		}
 
 		// Set session cookie
-		// Use secure: false for local development (http://localhost)
-		// In production, this should be true for HTTPS
+		// Use secure: false for HTTP (.onion sites)
+		// Use sameSite: 'lax' for better compatibility with proxies
 		const isProduction = process.env.NODE_ENV === 'production';
 		console.log('🍪 Setting registration cookie - userId:', userId, 'isProduction:', isProduction, 'secure:', isProduction);
 		cookies.set('user_session', userId, {
@@ -58,7 +58,7 @@ export async function register(username, password, supabase, cookies) {
 			maxAge: 60 * 60 * 24 * 30, // 30 days
 			httpOnly: true,
 			secure: isProduction,
-			sameSite: 'strict'
+			sameSite: 'lax'  // Changed from 'strict' to 'lax' for proxy compatibility
 		});
 		
 		// Verify cookie was set
@@ -109,8 +109,8 @@ export async function login(username, password, supabase, cookies) {
 		}
 
 		// Set session cookie
-		// Use secure: false for local development (http://localhost)
-		// In production, this should be true for HTTPS
+		// Use secure: false for HTTP (.onion sites)
+		// Use sameSite: 'lax' for better compatibility with proxies
 		const isProduction = process.env.NODE_ENV === 'production';
 		console.log('🍪 Setting login cookie - userId:', userId, 'isProduction:', isProduction, 'secure:', isProduction);
 		cookies.set('user_session', userId, {
@@ -118,7 +118,7 @@ export async function login(username, password, supabase, cookies) {
 			maxAge: 60 * 60 * 24 * 30, // 30 days
 			httpOnly: true,
 			secure: isProduction,
-			sameSite: 'strict'
+			sameSite: 'lax'  // Changed from 'strict' to 'lax' for proxy compatibility
 		});
 		
 		// Verify cookie was set
@@ -173,19 +173,29 @@ export function isAuthenticated(cookies) {
  */
 export async function getUserInfo(userId, supabase) {
 	try {
+		console.log('🔍 getUserInfo - Querying for userId:', userId);
 		const { data, error } = await supabase
 			.from('users')
 			.select('username, created_at')
 			.eq('id', userId)
-			.single();
+			.maybeSingle();  // Changed from .single() to .maybeSingle() to handle no results gracefully
+
+		console.log('🔍 getUserInfo - Query result:', { data, error });
 
 		if (error) {
+			console.log('🔍 getUserInfo - Query error:', error.message);
 			return { error: error.message };
 		}
 
+		if (!data) {
+			console.log('🔍 getUserInfo - No user found for userId:', userId);
+			return { error: 'User not found' };
+		}
+
+		console.log('🔍 getUserInfo - Success! Found user:', data.username);
 		return data;
 	} catch (err) {
-		console.error('Get user info error:', err);
+		console.error('🔍 getUserInfo - Exception:', err);
 		return { error: 'Failed to get user information' };
 	}
 }
