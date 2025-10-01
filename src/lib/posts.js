@@ -53,7 +53,7 @@ export async function fetchPostsWithVotes(options = {}) {
 			return [];
 		}
 
-		// Calculate real-time vote counts for each post
+		// Calculate real-time vote counts and comment counts for each post
 		const postsWithVoteCounts = await Promise.all(
 			posts.map(async (post) => {
 				// Get upvote count
@@ -70,10 +70,17 @@ export async function fetchPostsWithVotes(options = {}) {
 					.eq('post_id', post.id)
 					.eq('vote_type', 'down');
 
+				// Get comment count
+				const { count: commentCount } = await supabase
+					.from('comments')
+					.select('*', { count: 'exact', head: true })
+					.eq('post_id', post.id);
+
 				return {
 					...post,
 					upvotes: upvoteCount || 0,
-					downvotes: downvoteCount || 0
+					downvotes: downvoteCount || 0,
+					comment_count: commentCount || 0
 				};
 			})
 		);
@@ -159,7 +166,7 @@ export async function fetchPostWithVotes(postId) {
 			return null;
 		}
 
-		// Get vote counts
+		// Get vote counts and comment count
 		const { count: upvoteCount } = await supabase
 			.from('votes')
 			.select('*', { count: 'exact', head: true })
@@ -172,10 +179,16 @@ export async function fetchPostWithVotes(postId) {
 			.eq('post_id', post.id)
 			.eq('vote_type', 'down');
 
+		const { count: commentCount } = await supabase
+			.from('comments')
+			.select('*', { count: 'exact', head: true })
+			.eq('post_id', post.id);
+
 		return {
 			...post,
 			upvotes: upvoteCount || 0,
-			downvotes: downvoteCount || 0
+			downvotes: downvoteCount || 0,
+			comment_count: commentCount || 0
 		};
 	} catch (error) {
 		console.error('Error in fetchPostWithVotes:', error);
