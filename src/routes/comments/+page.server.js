@@ -23,15 +23,31 @@ export async function load({ locals }) {
 		const postIds = [...new Set(comments?.map((c) => c.post_id) || [])];
 		const { data: posts, error: postsError } = await supabase
 			.from('posts')
-			.select('id, title, category')
+			.select(`
+				id,
+				title,
+				category_id,
+				categories!posts_category_id_fkey (
+					slug
+				)
+			`)
 			.in('id', postIds);
 
 		if (postsError) {
 			console.error('Error fetching posts:', postsError);
 		}
 
-		// Create a map of posts for quick lookup
-		const postsMap = new Map(posts?.map((p) => [p.id, p]) || []);
+		// Create a map of posts for quick lookup with category slug
+		const postsMap = new Map(
+			posts?.map((p) => [
+				p.id,
+				{
+					id: p.id,
+					title: p.title,
+					category: p.categories?.slug || 'general'
+				}
+			]) || []
+		);
 
 		// Attach post data to comments
 		const commentsWithPosts = comments?.map((comment) => ({
