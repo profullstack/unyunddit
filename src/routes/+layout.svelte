@@ -2,20 +2,8 @@
 	import favicon from '$lib/assets/favicon.svg';
 	import Header from '$lib/components/Header.svelte';
 	import Footer from '$lib/components/Footer.svelte';
-	import { page } from '$app/stores';
 
 	let { children, data } = $props();
-	
-	// Determine current page for header navigation
-	const currentPage = $derived(() => {
-		if ($page.route.id === '/') return 'home';
-		if ($page.route.id === '/submit') return 'submit';
-		if ($page.route.id === '/new') return 'new';
-		if ($page.route.id === '/popular') return 'popular';
-		if ($page.route.id === '/auth') return 'auth';
-		if ($page.route.id === '/settings') return 'settings';
-		return '';
-	});
 </script>
 
 <svelte:head>
@@ -24,7 +12,7 @@
 
 <div class="app">
 	<Header
-		currentPage={currentPage()}
+		currentPage={data?.currentPage || ''}
 		user={data?.user}
 		isAuthenticated={data?.isAuthenticated || false}
 	/>
