@@ -220,3 +220,4 @@ This application is designed for maximum privacy:
 ## Support
 
 For issues and questions, please use the GitHub issue tracker.
+
