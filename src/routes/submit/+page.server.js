@@ -2,8 +2,6 @@ import { supabase } from '$lib/supabase.js';
 import { fail, redirect } from '@sveltejs/kit';
 import { getAllCategories, suggestCategories } from '$lib/categories.js';
 import { getCurrentUser } from '$lib/auth.js';
-import { SocksProxyAgent } from 'socks-proxy-agent';
-import { fetch as undiciFetch } from 'undici';
 
 /** @type {import('./$types').PageServerLoad} */
 export async function load({ cookies, url }) {
@@ -30,13 +28,14 @@ export async function load({ cookies, url }) {
 /** @type {import('./$types').Actions} */
 export const actions = {
 	fetchTitle: async ({ request }) => {
-		try {
-			const data = await request.formData();
-			const url = data.get('url')?.toString().trim();
-			const title = data.get('title')?.toString().trim();
-			const content = data.get('content')?.toString().trim();
-			const categoryId = data.get('category_id')?.toString().trim();
+		// Read form data once at the start
+		const data = await request.formData();
+		const url = data.get('url')?.toString().trim();
+		const title = data.get('title')?.toString().trim();
+		const content = data.get('content')?.toString().trim();
+		const categoryId = data.get('category_id')?.toString().trim();
 
+		try {
 			if (!url) {
 				return fail(400, {
 					error: 'URL is required to fetch title',
@@ -60,17 +59,21 @@ export const actions = {
 				});
 			}
 
-			// Create Tor SOCKS proxy agent
+			// Import node-fetch and SOCKS proxy agent dynamically
+			const nodeFetch = (await import('node-fetch')).default;
+			const { SocksProxyAgent } = await import('socks-proxy-agent');
+			
+			// Create SOCKS proxy agent with socks5h:// for DNS leak prevention
 			const torProxy = process.env.TOR_PROXY_URL || 'socks5h://127.0.0.1:9050';
 			const agent = new SocksProxyAgent(torProxy);
 
-			// Fetch the page through Tor
-			const response = await undiciFetch(url, {
-				dispatcher: agent,
+			// Fetch the page through Tor using node-fetch with the agent
+			const response = await nodeFetch(url, {
+				agent,
+				timeout: 15000,
 				headers: {
 					'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; rv:109.0) Gecko/20100101 Firefox/115.0'
-				},
-				signal: AbortSignal.timeout(15000) // 15 second timeout
+				}
 			});
 
 			if (!response.ok) {
@@ -119,12 +122,6 @@ export const actions = {
 
 		} catch (error) {
 			console.error('Error fetching title:', error);
-			
-			const data = await request.formData();
-			const title = data.get('title')?.toString().trim();
-			const url = data.get('url')?.toString().trim();
-			const content = data.get('content')?.toString().trim();
-			const categoryId = data.get('category_id')?.toString().trim();
 
 			if (error instanceof Error && error.name === 'AbortError') {
 				return fail(504, {
