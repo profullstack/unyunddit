@@ -10,7 +10,7 @@
 	let title = form?.title || '';
 	let url = form?.url || '';
 	let content = form?.content || '';
-	let selectedCategoryId = form?.categoryId || '';
+	let selectedCategoryId = form?.categoryId || data.preselectedCategoryId || '';
 	/** @type {Array<{id: number, name: string, slug: string}>} */
 	let suggestedCategories = [];
 	let showSuggestions = false;

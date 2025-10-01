@@ -4,13 +4,24 @@ import { getAllCategories, suggestCategories } from '$lib/categories.js';
 import { getCurrentUser } from '$lib/auth.js';
 
 /** @type {import('./$types').PageServerLoad} */
-export async function load({ cookies }) {
+export async function load({ cookies, url }) {
 	const categories = await getAllCategories();
 	const userId = getCurrentUser(cookies);
+	const categorySlug = url.searchParams.get('category');
+	
+	// Find the category ID if a category slug is provided
+	let preselectedCategoryId = null;
+	if (categorySlug) {
+		const category = categories.find(cat => cat.slug === categorySlug);
+		if (category) {
+			preselectedCategoryId = category.id.toString();
+		}
+	}
 	
 	return {
 		categories,
-		isAuthenticated: !!userId
+		isAuthenticated: !!userId,
+		preselectedCategoryId
 	};
 }
 

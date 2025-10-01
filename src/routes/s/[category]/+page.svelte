@@ -21,6 +21,11 @@
 				{/if}
 			</p>
 			<p class="post-count">{data.category.post_count} posts</p>
+			<div class="category-actions">
+				<a href="/submit?category={data.category.slug}" class="submit-to-category-btn">
+					Submit link to {data.category.name}
+				</a>
+			</div>
 		</div>
 
 		{#if data.posts.length === 0}
@@ -82,8 +87,28 @@
 
 	.post-count {
 		color: #888;
-		margin: 0;
+		margin: 0 0 15px;
 		font-size: 0.9rem;
+	}
+
+	.category-actions {
+		margin-top: 15px;
+	}
+
+	.submit-to-category-btn {
+		background-color: #ff6b35;
+		color: white;
+		text-decoration: none;
+		padding: 10px 20px;
+		border-radius: 4px;
+		font-size: 0.9rem;
+		font-weight: bold;
+		transition: background-color 0.2s;
+		display: inline-block;
+	}
+
+	.submit-to-category-btn:hover {
+		background-color: #e55a2b;
 	}
 
 	.no-posts {
