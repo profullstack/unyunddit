@@ -102,19 +102,10 @@ export const actions = {
 				});
 			}
 
-			// Decode HTML entities
-			const decodedTitle = fetchedTitle
-				.replace(/&amp;/g, '&')
-				.replace(/&lt;/g, '<')
-				.replace(/&gt;/g, '>')
-				.replace(/&quot;/g, '"')
-				.replace(/&#039;/g, "'")
-				.replace(/&nbsp;/g, ' ');
-
 			// Return the fetched title along with other form data
 			return {
 				success: true,
-				title: decodedTitle,
+				title: fetchedTitle,
 				url,
 				content,
 				categoryId
