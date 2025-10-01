@@ -59,18 +59,17 @@ export const actions = {
 				});
 			}
 
-			// Import node-fetch and SOCKS proxy agent dynamically
-			const nodeFetch = (await import('node-fetch')).default;
+			// Import SOCKS proxy agent dynamically
 			const { SocksProxyAgent } = await import('socks-proxy-agent');
 			
 			// Create SOCKS proxy agent with socks5h:// for DNS leak prevention
 			const torProxy = process.env.TOR_PROXY_URL || 'socks5h://127.0.0.1:9050';
 			const agent = new SocksProxyAgent(torProxy);
 
-			// Fetch the page through Tor using node-fetch with the agent
-			const response = await nodeFetch(url, {
-				agent,
-				timeout: 15000,
+			// Fetch the page through Tor using native fetch with the agent
+			const response = await fetch(url, {
+				dispatcher: agent,
+				signal: AbortSignal.timeout(15000),
 				headers: {
 					'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; rv:109.0) Gecko/20100101 Firefox/115.0'
 				}

@@ -1,9 +1,6 @@
 <script>
 	/** @type {import('./$types').PageData} */
 	export let data;
-
-	/** @type {import('./$types').ActionData} */
-	export let form;
 </script>
 
 <svelte:head>
@@ -18,11 +15,11 @@
 			<div class="user-info">
 				<h2>Account Information</h2>
 				<div class="info-row">
-					<label>Username:</label>
+					<span class="info-label">Username:</span>
 					<span class="username">{data.user.username}</span>
 				</div>
 				<div class="info-row">
-					<label>Member since:</label>
+					<span class="info-label">Member since:</span>
 					<span class="date">{new Date(data.user.created_at).toLocaleDateString()}</span>
 				</div>
 			</div>
@@ -102,7 +99,7 @@
 		border-bottom: none;
 	}
 
-	.info-row label {
+	.info-label {
 		color: #888;
 		font-weight: 500;
 	}
