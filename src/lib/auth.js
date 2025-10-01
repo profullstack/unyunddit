@@ -49,11 +49,14 @@ export async function register(username, password, supabase, cookies) {
 		}
 
 		// Set session cookie
+		// Use secure: false for local development (http://localhost)
+		// In production, this should be true for HTTPS
+		const isProduction = process.env.NODE_ENV === 'production';
 		cookies.set('user_session', userId, {
 			path: '/',
 			maxAge: 60 * 60 * 24 * 30, // 30 days
 			httpOnly: true,
-			secure: true,
+			secure: isProduction,
 			sameSite: 'strict'
 		});
 
@@ -101,11 +104,14 @@ export async function login(username, password, supabase, cookies) {
 		}
 
 		// Set session cookie
+		// Use secure: false for local development (http://localhost)
+		// In production, this should be true for HTTPS
+		const isProduction = process.env.NODE_ENV === 'production';
 		cookies.set('user_session', userId, {
 			path: '/',
 			maxAge: 60 * 60 * 24 * 30, // 30 days
 			httpOnly: true,
-			secure: true,
+			secure: isProduction,
 			sameSite: 'strict'
 		});
 
