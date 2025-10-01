@@ -4,6 +4,55 @@ import { handleUpvote, handleDownvote } from '$lib/voting.js';
 import { fetchPostWithVotes } from '$lib/posts.js';
 import { getFingerprint } from '$lib/fingerprint.js';
 
+/**
+ * Build a hierarchical comment tree from flat comment array
+ * @param {Array} comments - Flat array of comments
+ * @returns {Array} - Hierarchical comment tree
+ */
+function buildCommentTree(comments) {
+	if (!comments || comments.length === 0) return [];
+	
+	// Create a map for quick lookup
+	const commentMap = new Map();
+	const rootComments = [];
+	
+	// First pass: create map and add children arrays
+	comments.forEach(comment => {
+		comment.children = [];
+		comment.depth = 0;
+		commentMap.set(comment.id, comment);
+	});
+	
+	// Second pass: build the tree structure
+	comments.forEach(comment => {
+		if (comment.parent_id && commentMap.has(comment.parent_id)) {
+			const parent = commentMap.get(comment.parent_id);
+			comment.depth = parent.depth + 1;
+			parent.children.push(comment);
+		} else {
+			rootComments.push(comment);
+		}
+	});
+	
+	// Flatten the tree for display while preserving hierarchy
+	function flattenTree(nodes, result = []) {
+		nodes.forEach(node => {
+			result.push(node);
+			if (node.children && node.children.length > 0) {
+				// Sort children by creation time
+				node.children.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+				flattenTree(node.children, result);
+			}
+		});
+		return result;
+	}
+	
+	// Sort root comments by creation time
+	rootComments.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+	
+	return flattenTree(rootComments);
+}
+
 /** @type {import('./$types').PageServerLoad} */
 export async function load({ params, url }) {
 	const postId = params.id?.toString()?.trim();
@@ -32,9 +81,12 @@ export async function load({ params, url }) {
 			console.error('Error fetching comments:', commentsError);
 		}
 
+		// Build hierarchical comment tree
+		const threadedComments = buildCommentTree(comments || []);
+
 		return {
 			post,
-			comments: comments || [],
+			comments: threadedComments,
 			replyTo
 		};
 	} catch (err) {

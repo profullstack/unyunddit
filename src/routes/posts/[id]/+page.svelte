@@ -272,13 +272,13 @@
 	}
 
 	.reply-btn {
-		color: #4a9eff;
+		color: #ff6b35;
 		text-decoration: none;
 		font-size: 0.9rem;
 	}
 
 	.reply-btn:hover {
-		color: #6bb3ff;
+		color: #e55a2b;
 		text-decoration: underline;
 	}
 
