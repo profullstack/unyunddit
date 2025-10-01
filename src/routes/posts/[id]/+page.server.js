@@ -5,8 +5,9 @@ import { fetchPostWithVotes } from '$lib/posts.js';
 import { getFingerprint } from '$lib/fingerprint.js';
 
 /** @type {import('./$types').PageServerLoad} */
-export async function load({ params }) {
+export async function load({ params, url }) {
 	const postId = params.id?.toString()?.trim();
+	const replyTo = url.searchParams.get('reply_to');
 	
 	if (!postId) {
 		throw error(404, 'Post not found');
@@ -33,7 +34,8 @@ export async function load({ params }) {
 
 		return {
 			post,
-			comments: comments || []
+			comments: comments || [],
+			replyTo
 		};
 	} catch (err) {
 		console.error('Error in post load:', err);

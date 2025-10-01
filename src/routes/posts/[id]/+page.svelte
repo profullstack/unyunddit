@@ -1,6 +1,5 @@
 <script>
 	import { enhance } from '$app/forms';
-	import { page } from '$app/stores';
 	import PostCard from '$lib/components/PostCard.svelte';
 	
 	/** @type {import('./$types').PageData} */
@@ -10,28 +9,13 @@
 	export let form;
 	
 	let commentContent = '';
-	/** @type {string | null} */
-	let replyingTo = null;
 	let replyContent = '';
-	
-	/**
-	 * @param {string} commentId
-	 */
-	function startReply(commentId) {
-		replyingTo = commentId;
-		replyContent = '';
-	}
-	
-	function cancelReply() {
-		replyingTo = null;
-		replyContent = '';
-	}
 	
 	/**
 	 * @param {number} depth
 	 */
 	function getIndentClass(depth) {
-		return `indent-${Math.min(depth, 5)}`;
+		return depth > 0 ? `indent-${Math.min(depth, 5)}` : '';
 	}
 	
 	/**
@@ -111,16 +95,15 @@
 							</div>
 							<div class="comment-meta">
 								<span class="comment-time">{formatDate(comment.created_at)}</span>
-								<button 
-									class="reply-btn" 
-									on:click={() => startReply(comment.id)}
-								>
-									Reply
-								</button>
+								{#if data.replyTo === comment.id}
+									<a href="/posts/{data.post.id}" class="reply-btn">Cancel Reply</a>
+								{:else}
+									<a href="/posts/{data.post.id}?reply_to={comment.id}" class="reply-btn">Reply</a>
+								{/if}
 							</div>
-							
+
 							<!-- Reply Form -->
-							{#if replyingTo === comment.id}
+							{#if data.replyTo === comment.id}
 								<div class="reply-form">
 									<form method="POST" action="?/comment" use:enhance class="comment-form">
 										<input type="hidden" name="parent_id" value={comment.id} />
@@ -134,7 +117,7 @@
 										></textarea>
 										<div class="form-actions">
 											<button type="submit" class="submit-btn">Post Reply</button>
-											<button type="button" class="cancel-btn" on:click={cancelReply}>Cancel</button>
+											<a href="/posts/{data.post.id}" class="cancel-btn">Cancel</a>
 											<small>{replyContent.length}/10,000 characters</small>
 										</div>
 									</form>
@@ -240,17 +223,20 @@
 	}
 
 	.cancel-btn {
-		background: none;
+		color: #888;
+		text-decoration: none;
+		font-size: 12px;
+		margin-left: 10px;
+		padding: 4px 8px;
 		border: 1px solid #444;
-		color: #ccc;
-		padding: 10px 20px;
 		border-radius: 4px;
-		cursor: pointer;
-		transition: all 0.2s;
+		display: inline-block;
 	}
 
 	.cancel-btn:hover {
-		background-color: #333;
+		color: #ff6b35;
+		border-color: #ff6b35;
+		text-decoration: none;
 	}
 
 	.form-actions small {
@@ -286,16 +272,14 @@
 	}
 
 	.reply-btn {
-		background: none;
-		border: none;
 		color: #4a9eff;
-		cursor: pointer;
-		text-decoration: underline;
+		text-decoration: none;
 		font-size: 0.9rem;
 	}
 
 	.reply-btn:hover {
 		color: #6bb3ff;
+		text-decoration: underline;
 	}
 
 	.reply-form {
