@@ -62,7 +62,7 @@
 
 					{#if comment.post}
 						<div class="comment-footer">
-							<a href="/posts/{comment.post_id}" class="post-link">
+							<a href="/posts/{comment.post_id}#comment-{comment.id}" class="post-link">
 								→ {comment.post.title}
 							</a>
 						</div>
