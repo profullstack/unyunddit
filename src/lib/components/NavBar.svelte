@@ -15,6 +15,7 @@
 		<a href="/submit" class="nav-link" class:active={currentPage === 'submit'}>Submit Post</a>
 		<a href="/new" class="nav-link" class:active={currentPage === 'new'}>New</a>
 		<a href="/popular" class="nav-link" class:active={currentPage === 'popular'}>Popular</a>
+		<a href="/comments" class="nav-link" class:active={currentPage === 'comments'}>Latest Comments</a>
 	</div>
 	
 	<div class="nav-right">
