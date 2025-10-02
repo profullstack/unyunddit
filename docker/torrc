@@ -36,3 +36,9 @@ ClientOnly 1
 CircuitBuildTimeout 30
 LearnCircuitBuildTimeout 0
 MaxCircuitDirtiness 600
+
+# Workaround for compression bomb warnings from directory servers
+# These warnings are from Tor's internal operations, not your app
+# Increase tolerance to prevent circuit abandonment
+NumEntryGuards 8
+NumDirectoryGuards 3
