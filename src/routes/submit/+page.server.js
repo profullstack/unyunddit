@@ -68,12 +68,15 @@ export const actions = {
 			const agent = new SocksProxyAgent(torProxy);
 
 			// Fetch the page through Tor using node-fetch with the agent
+			// Set size limit to prevent compression bomb attacks
+			const MAX_RESPONSE_SIZE = 1024 * 1024; // 1MB limit
 			const response = await nodeFetch(url, {
 				agent,
 				timeout: 15000,
 				headers: {
 					'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; rv:109.0) Gecko/20100101 Firefox/115.0'
-				}
+				},
+				size: MAX_RESPONSE_SIZE
 			});
 
 			if (!response.ok) {

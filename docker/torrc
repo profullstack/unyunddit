@@ -36,9 +36,3 @@ ClientOnly 1
 CircuitBuildTimeout 30
 LearnCircuitBuildTimeout 0
 MaxCircuitDirtiness 600
-
-# Maximum output size Tor will decompress before killing stream
-MaxUncompressedCellBytes 1048576    # (default ~10MB, set lower, e.g., 1MB)
-
-# Maximum compression ratio Tor tolerates before aborting
-MaxCompressionRatio 10  # default is 20, try lowering
