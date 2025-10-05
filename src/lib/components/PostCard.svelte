@@ -1,5 +1,6 @@
 <script>
 	import { page } from '$app/stores';
+	import { isAsciiOnly } from '$lib/sanitize.js';
 	
 	/** @type {Object} */
 	export let post;
@@ -72,8 +73,11 @@
 		
 		{#if post.content}
 			<div class="post-text">
-				{post.content.length > 200 
-					? post.content.substring(0, 200) + '...' 
+				{#if isAsciiOnly(post.content)}
+					<span class="ascii-flag" title="ASCII-only content">[x]</span>
+				{/if}
+				{post.content.length > 200
+					? post.content.substring(0, 200) + '...'
 					: post.content}
 			</div>
 		{/if}
@@ -226,6 +230,18 @@
 		white-space: pre-wrap;
 		word-wrap: break-word;
 		line-height: 1.5;
+	}
+
+	.ascii-flag {
+		display: inline-block;
+		background-color: #4a4a4a;
+		color: #ff6b35;
+		padding: 2px 6px;
+		border-radius: 3px;
+		font-size: 0.75rem;
+		font-weight: bold;
+		margin-right: 8px;
+		vertical-align: middle;
 	}
 
 	.post-meta {

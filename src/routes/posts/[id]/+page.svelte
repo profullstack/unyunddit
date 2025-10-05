@@ -1,6 +1,7 @@
 <script>
 	import { enhance } from '$app/forms';
 	import PostCard from '$lib/components/PostCard.svelte';
+	import { isAsciiOnly } from '$lib/sanitize.js';
 	
 	/** @type {import('./$types').PageData} */
 	export let data;
@@ -100,6 +101,9 @@
 					{#each data.comments as comment}
 						<div class="comment {getIndentClass(comment.depth)}" id="comment-{comment.id}">
 							<div class="comment-content">
+								{#if isAsciiOnly(comment.content)}
+									<span class="ascii-flag" title="ASCII-only content">[x]</span>
+								{/if}
 								{@html linkifyUrls(comment.content)}
 							</div>
 							<div class="comment-meta">
@@ -281,6 +285,18 @@
 	
 	.comment-content :global(a:hover) {
 		color: #e55a2b;
+	}
+
+	.ascii-flag {
+		display: inline-block;
+		background-color: #4a4a4a;
+		color: #ff6b35;
+		padding: 2px 6px;
+		border-radius: 3px;
+		font-size: 0.75rem;
+		font-weight: bold;
+		margin-right: 8px;
+		vertical-align: middle;
 	}
 
 	.comment-meta {
