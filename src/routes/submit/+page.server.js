@@ -141,10 +141,11 @@ export const actions = {
 	submit: async ({ request, cookies }) => {
 		try {
 			const data = await request.formData();
-			const title = sanitizeToAscii(data.get('title')?.toString().trim());
+			const title = data.get('title')?.toString().trim();
 			const url = data.get('url')?.toString().trim();
-			const content = sanitizeToAscii(data.get('content')?.toString().trim());
+			const content = data.get('content')?.toString().trim();
 			const categoryId = data.get('category_id')?.toString().trim();
+			const asciiOnly = data.get('ascii_only') === 'true';
 
 			// Validation
 			if (!title) {
@@ -238,15 +239,20 @@ export const actions = {
 			// Get current user ID if authenticated
 			const userId = getCurrentUser(cookies);
 
+			// Conditionally sanitize content based on ascii_only flag
+			const finalTitle = asciiOnly ? sanitizeToAscii(title) : title;
+			const finalContent = asciiOnly && content ? sanitizeToAscii(content) : content;
+
 			// Insert post into database
 			const { data: post, error } = await supabase
 				.from('posts')
 				.insert({
-					title,
+					title: finalTitle,
 					url: url || null,
-					content: content || null,
+					content: finalContent || null,
 					category_id: finalCategoryId,
-					user_id: userId || null
+					user_id: userId || null,
+					ascii_only: asciiOnly
 				})
 				.select()
 				.single();

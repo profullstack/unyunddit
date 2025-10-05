@@ -112,6 +112,19 @@
 					<small>Maximum 10,000 characters</small>
 				</div>
 
+				<div class="form-group checkbox-group">
+					<label class="checkbox-label">
+						<input
+							type="checkbox"
+							name="ascii_only"
+							value="true"
+							checked={form?.asciiOnly || false}
+						/>
+						<span>ASCII-only mode [x]</span>
+					</label>
+					<small>Strip non-ASCII characters (emojis, special Unicode) when displaying this post</small>
+				</div>
+
 				<div class="form-actions">
 					<button type="submit" class="submit-btn">Submit Post</button>
 					<a href="/" class="cancel-btn">Cancel</a>
@@ -297,6 +310,29 @@
 	.form-group small {
 		color: #888;
 		font-size: 0.9rem;
+	}
+
+	.checkbox-group {
+		padding: 10px 0;
+	}
+
+	.checkbox-label {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		cursor: pointer;
+		font-weight: normal;
+	}
+
+	.checkbox-label input[type="checkbox"] {
+		width: 20px;
+		height: 20px;
+		cursor: pointer;
+		accent-color: #ff6b35;
+	}
+
+	.checkbox-label span {
+		color: #e0e0e0;
 	}
 
 	.form-group textarea {

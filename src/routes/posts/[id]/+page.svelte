@@ -83,6 +83,13 @@
 					rows="4"
 					bind:value={commentContent}
 				></textarea>
+				<div class="checkbox-group">
+					<label class="checkbox-label">
+						<input type="checkbox" name="ascii_only" value="true" />
+						<span>ASCII-only mode [x]</span>
+					</label>
+					<small>Strip non-ASCII characters when displaying this comment</small>
+				</div>
 				<div class="form-actions">
 					<button type="submit" class="submit-btn">Post Comment</button>
 					<small>{commentContent.length}/10,000 characters</small>
@@ -101,7 +108,7 @@
 					{#each data.comments as comment}
 						<div class="comment {getIndentClass(comment.depth)}" id="comment-{comment.id}">
 							<div class="comment-content">
-								{#if isAsciiOnly(comment.content)}
+								{#if comment.ascii_only}
 									<span class="ascii-flag" title="ASCII-only content">[x]</span>
 								{/if}
 								{@html linkifyUrls(comment.content)}
@@ -128,6 +135,13 @@
 											rows="3"
 											bind:value={replyContent}
 										></textarea>
+										<div class="checkbox-group">
+											<label class="checkbox-label">
+												<input type="checkbox" name="ascii_only" value="true" />
+												<span>ASCII-only mode [x]</span>
+											</label>
+											<small>Strip non-ASCII characters when displaying this reply</small>
+										</div>
 										<div class="form-actions">
 											<button type="submit" class="submit-btn">Post Reply</button>
 											<a href="/posts/{data.post.id}" class="cancel-btn">Cancel</a>
@@ -250,6 +264,37 @@
 		color: #ff6b35;
 		border-color: #ff6b35;
 		text-decoration: none;
+	}
+
+	.checkbox-group {
+		padding: 10px 0;
+	}
+
+	.checkbox-label {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		cursor: pointer;
+		font-weight: normal;
+	}
+
+	.checkbox-label input[type="checkbox"] {
+		width: 20px;
+		height: 20px;
+		cursor: pointer;
+		accent-color: #ff6b35;
+	}
+
+	.checkbox-label span {
+		color: #e0e0e0;
+	}
+
+	.checkbox-group small {
+		color: #888;
+		font-size: 0.85rem;
+		display: block;
+		margin-top: 5px;
+		margin-left: 30px;
 	}
 
 	.form-actions small {

@@ -111,8 +111,9 @@ export const actions = {
 
 		try {
 			const data = await request.formData();
-			const content = sanitizeToAscii(data.get('content')?.toString()?.trim());
+			const content = data.get('content')?.toString()?.trim();
 			const parentId = data.get('parent_id')?.toString();
+			const asciiOnly = data.get('ascii_only') === 'true';
 
 			// Validation
 			if (!content) {
@@ -148,12 +149,16 @@ export const actions = {
 				}
 			}
 
+			// Conditionally sanitize content based on ascii_only flag
+			const finalContent = asciiOnly ? sanitizeToAscii(content) : content;
+
 			// Insert comment using browser fingerprint only
 			const commentData = {
 				post_id: postId,
-				content,
+				content: finalContent,
 				browser_fingerprint: browserFingerprint,
-				parent_id: parentId && parentId !== '' ? parentId : null
+				parent_id: parentId && parentId !== '' ? parentId : null,
+				ascii_only: asciiOnly
 			};
 
 			const { error: insertError } = await supabase

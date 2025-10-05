@@ -73,7 +73,7 @@
 		
 		{#if post.content}
 			<div class="post-text">
-				{#if isAsciiOnly(post.content)}
+				{#if post.ascii_only}
 					<span class="ascii-flag" title="ASCII-only content">[x]</span>
 				{/if}
 				{post.content.length > 200
