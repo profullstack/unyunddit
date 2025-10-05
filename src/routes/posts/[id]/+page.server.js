@@ -3,6 +3,7 @@ import { error, fail } from '@sveltejs/kit';
 import { handleUpvote, handleDownvote } from '$lib/voting.js';
 import { fetchPostWithVotes } from '$lib/posts.js';
 import { getFingerprint } from '$lib/fingerprint.js';
+import { sanitizeToAscii } from '$lib/sanitize.js';
 
 /**
  * Build a hierarchical comment tree from flat comment array
@@ -110,7 +111,7 @@ export const actions = {
 
 		try {
 			const data = await request.formData();
-			const content = data.get('content')?.toString()?.trim();
+			const content = sanitizeToAscii(data.get('content')?.toString()?.trim());
 			const parentId = data.get('parent_id')?.toString();
 
 			// Validation

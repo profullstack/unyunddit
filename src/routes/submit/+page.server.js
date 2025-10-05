@@ -2,6 +2,7 @@ import { supabase } from '$lib/supabase.js';
 import { fail, redirect } from '@sveltejs/kit';
 import { getAllCategories, suggestCategories } from '$lib/categories.js';
 import { getCurrentUser } from '$lib/auth.js';
+import { sanitizeToAscii } from '$lib/sanitize.js';
 
 /** @type {import('./$types').PageServerLoad} */
 export async function load({ cookies, url }) {
@@ -140,9 +141,9 @@ export const actions = {
 	submit: async ({ request, cookies }) => {
 		try {
 			const data = await request.formData();
-			const title = data.get('title')?.toString().trim();
+			const title = sanitizeToAscii(data.get('title')?.toString().trim());
 			const url = data.get('url')?.toString().trim();
-			const content = data.get('content')?.toString().trim();
+			const content = sanitizeToAscii(data.get('content')?.toString().trim());
 			const categoryId = data.get('category_id')?.toString().trim();
 
 			// Validation
