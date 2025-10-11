@@ -102,6 +102,25 @@
 					<small>Choose a category for better discoverability</small>
 				</div>
 
+				<div class="form-image-and-video">
+					<div class="form-group">
+						<label for="image_url">Upload An Image (optional)</label>
+						<input
+							type="file"
+							id="image_file"
+							name="image_file"
+							accept="image/*"
+							placeholder="https://example.com/image.jpg"
+						/>
+						<small>Upload an image for your post (Max 2MB)</small>
+					</div>
+					<div class="form-group">
+						<label for="image_url">Upload an Video (optional)</label>
+						<input type="file" id="video_file" name="video_file" accept="video/*" />
+						<small>Upload an video for your post</small>
+					</div>
+				</div>
+
 				<div class="form-group">
 					<label for="image_url">Image URL (optional)</label>
 					<input
@@ -439,19 +458,10 @@
 			flex-direction: column;
 		}
 	}
-	.image-preview {
-		width: 300px;
-		min-height: 100px;
-		border: 2px solid #ddd;
-		margin-top: 15px;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		font-weight: bold;
-		color: #ccc;
-	}
 
-	img {
-		width: 100%;
+	.form-image-and-video {
+		display: grid;
+		gap: 2px;
+		grid-template-columns: 1fr 1fr;
 	}
 </style>

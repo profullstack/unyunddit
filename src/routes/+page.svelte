@@ -63,9 +63,6 @@
 		margin: 0 auto;
 		padding: 20px;
 	}
-
-	
-
 	.content {
 		display: flex;
 		flex-direction: column;

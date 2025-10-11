@@ -145,6 +145,7 @@ export async function handle({ event, resolve }) {
 			"default-src 'none'", // Block all by default
 			"style-src 'self' 'unsafe-inline'", // Allow self-hosted styles and inline styles
 			`img-src 'self' data: ${SUPABASE_URL}`, // Allow self-hosted images and data URIs
+			`media-src 'self' data: ${SUPABASE_URL}`, // Allow self-hosted media and Supabase storage
 			"form-action 'self'", // Only allow forms to submit to same origin
 			"base-uri 'self'", // Restrict base URI
 			"frame-ancestors 'none'", // Prevent embedding in frames

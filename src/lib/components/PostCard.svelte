@@ -86,11 +86,22 @@
 			</div>
 		{/if}
 
-		{#if post.image_url}
-			<div class="post-image">
-				<img src={post.image_url} alt="" />
-			</div>
-		{/if}
+		<div class="media {post.image_url && post.video_url ? 'has-both' : 'has-not'}">
+			{#if post.image_url}
+				<div class="post-media">
+					<img src={post.image_url} alt="" />
+				</div>
+			{/if}
+
+			{#if post.video_url}
+				<div class="post-media">
+					<video controls>
+						<source src={post.video_url} type="video/mp4" />
+						Your browser does not support the video tag.
+					</video>
+				</div>
+			{/if}
+		</div>
 
 		<div class="post-meta">
 			{#if post.categories}
@@ -133,12 +144,46 @@
 </article>
 
 <style>
-	img{
+	.post-media {
+		width: 100%;
+		max-width: 100%;
+		overflow: hidden;
+		margin: 10px 0;
+	}
+
+	.media.has-both .post-media:last-child {
+		border-radius: 0 0 8px 8px;
+	}
+
+	.media.has-both .post-media:first-child {
+		border-radius: 8px 8px 0 0;
+	}
+
+	.media.has-not .post-media {
+		border-radius: 12px;
+	}
+
+	.post-media img {
+		display: block;
+		transition: transform 0.3s ease;
+		height: auto;
 		object-fit: cover;
 		max-width: 100%;
-		border-radius: 8px;
-		
 	}
+
+	.post-media img:hover {
+		transform: scale(1.01);
+	}
+
+	.post-media video {
+		display: block;
+		width: 100%;
+		height: 450px;
+		object-fit: fit;
+		background-color: transparent;
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+	}
+
 	.post {
 		display: flex;
 		background-color: #2a2a2a;
