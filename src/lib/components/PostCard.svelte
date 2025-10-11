@@ -31,8 +31,6 @@
 		if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
 		return `${Math.floor(diffInSeconds / 86400)}d ago`;
 	}
-
-	$: borderStyle = post.vidoe_url && post.image_url ? true : false;
 </script>
 
 <article class="post">
@@ -88,7 +86,7 @@
 			</div>
 		{/if}
 
-		<div class="media {post.image_url && post.video_url ? 'has-both' : ''}">
+		<div class="media {post.image_url && post.video_url ? 'has-both' : 'has-not'}">
 			{#if post.image_url}
 				<div class="post-media">
 					<img src={post.image_url} alt="" />
@@ -159,6 +157,10 @@
 
 	.media.has-both .post-media:first-child {
 		border-radius: 8px 8px 0 0;
+	}
+
+	.media.has-not .post-media {
+		border-radius: 12px;
 	}
 
 	.post-media img {

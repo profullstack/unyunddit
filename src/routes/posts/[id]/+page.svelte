@@ -2,23 +2,23 @@
 	import { enhance } from '$app/forms';
 	import PostCard from '$lib/components/PostCard.svelte';
 	import { isAsciiOnly } from '$lib/sanitize.js';
-	
+
 	/** @type {import('./$types').PageData} */
 	export let data;
-	
+
 	/** @type {import('./$types').ActionData} */
 	export let form;
-	
+
 	let commentContent = '';
 	let replyContent = '';
-	
+
 	/**
 	 * @param {number} depth
 	 */
 	function getIndentClass(depth) {
 		return depth > 0 ? `indent-${Math.min(depth, 5)}` : '';
 	}
-	
+
 	/**
 	 * @param {string} dateString
 	 */
@@ -29,15 +29,15 @@
 		const diffMins = Math.floor(diffMs / 60000);
 		const diffHours = Math.floor(diffMins / 60);
 		const diffDays = Math.floor(diffHours / 24);
-		
+
 		if (diffMins < 1) return 'just now';
 		if (diffMins < 60) return `${diffMins}m ago`;
 		if (diffHours < 24) return `${diffHours}h ago`;
 		if (diffDays < 7) return `${diffDays}d ago`;
-		
+
 		return date.toLocaleDateString();
 	}
-	
+
 	/**
 	 * Convert URLs in text to clickable hyperlinks
 	 * @param {string} text
@@ -50,28 +50,29 @@
 
 <svelte:head>
 	<title>{data.post.title} - Unyunddit</title>
-	<meta name="description" content={data.post.content ? data.post.content.substring(0, 160) : data.post.title} />
+	<meta
+		name="description"
+		content={data.post.content ? data.post.content.substring(0, 160) : data.post.title}
+	/>
 </svelte:head>
 
 <main>
 	<section class="content">
 		<!-- Post Details using PostCard for consistency -->
 		<PostCard post={data.post} showVoting={true} linkToExternal={true} />
-		
+
 		<!-- Comment Form -->
 		<section class="comment-form-section">
 			<h3>Add a Comment</h3>
-			
+
 			{#if form?.error}
 				<div class="error">
 					{form.error}
 				</div>
 			{/if}
-			
+
 			{#if form?.success}
-				<div class="success">
-					Comment posted successfully!
-				</div>
+				<div class="success">Comment posted successfully!</div>
 			{/if}
 
 			<form method="POST" action="?/comment" use:enhance class="comment-form">
@@ -100,7 +101,7 @@
 		<!-- Comments -->
 		<section class="comments-section">
 			<h3>Comments ({data.comments.length})</h3>
-			
+
 			{#if data.comments.length === 0}
 				<p class="no-comments">No comments yet. Be the first to comment!</p>
 			{:else}
@@ -174,7 +175,14 @@
 		padding: 20px;
 	}
 
-	.comment-form-section, .comments-section {
+	.content {
+		display: flex;
+		flex-direction: column;
+		gap: 15px;
+	}
+
+	.comment-form-section,
+	.comments-section {
 		background-color: #2a2a2a;
 		border-radius: 8px;
 		padding: 20px;
@@ -182,7 +190,8 @@
 		border: 1px solid #333;
 	}
 
-	.comment-form-section h3, .comments-section h3 {
+	.comment-form-section h3,
+	.comments-section h3 {
 		margin: 0 0 20px;
 		color: #ff6b35;
 	}
@@ -278,7 +287,7 @@
 		font-weight: normal;
 	}
 
-	.checkbox-label input[type="checkbox"] {
+	.checkbox-label input[type='checkbox'] {
 		width: 20px;
 		height: 20px;
 		cursor: pointer;
@@ -322,12 +331,12 @@
 		white-space: pre-wrap;
 		word-break: break-word;
 	}
-	
+
 	.comment-content :global(a) {
 		color: #ff6b35;
 		text-decoration: underline;
 	}
-	
+
 	.comment-content :global(a:hover) {
 		color: #e55a2b;
 	}
@@ -369,11 +378,21 @@
 	}
 
 	/* Indentation for threaded comments */
-	.indent-1 { margin-left: 20px; }
-	.indent-2 { margin-left: 40px; }
-	.indent-3 { margin-left: 60px; }
-	.indent-4 { margin-left: 80px; }
-	.indent-5 { margin-left: 100px; }
+	.indent-1 {
+		margin-left: 20px;
+	}
+	.indent-2 {
+		margin-left: 40px;
+	}
+	.indent-3 {
+		margin-left: 60px;
+	}
+	.indent-4 {
+		margin-left: 80px;
+	}
+	.indent-5 {
+		margin-left: 100px;
+	}
 
 	@media (max-width: 600px) {
 		main {
@@ -391,10 +410,20 @@
 		}
 
 		/* Reduce indentation on mobile */
-		.indent-1 { margin-left: 10px; }
-		.indent-2 { margin-left: 20px; }
-		.indent-3 { margin-left: 30px; }
-		.indent-4 { margin-left: 40px; }
-		.indent-5 { margin-left: 50px; }
+		.indent-1 {
+			margin-left: 10px;
+		}
+		.indent-2 {
+			margin-left: 20px;
+		}
+		.indent-3 {
+			margin-left: 30px;
+		}
+		.indent-4 {
+			margin-left: 40px;
+		}
+		.indent-5 {
+			margin-left: 50px;
+		}
 	}
 </style>
