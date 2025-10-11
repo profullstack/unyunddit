@@ -147,7 +147,9 @@ export const actions = {
 			const categoryId = data.get('category_id')?.toString().trim();
 			const asciiOnly = data.get('ascii_only') === 'true';
 			const imageFile = data.get('image_file');
+			const videoFile = data.get('video_file');
 			let imageUrl = '';
+			let videoUrl = '';
 
 			// Validation
 			if (!title) {
@@ -258,24 +260,53 @@ export const actions = {
 				}
 				const storagePath = `posts_image/${Date.now()}_${imageFile.name}`;
 
+				const { data: uploadData, error: uploadError } = await supabase.storage
+					.from('images')
+					.upload(storagePath, imageFile, {
+						cacheControl: '3600',
+						upsert: false,
+						contentType: imageFile.type
+					});
 
-				const {data: uploadData, error: uploadError} = await supabase.storage.from('images')
-				.upload(storagePath,imageFile,{
-					cacheControl : '3600',
-					upsert : false,
-					contentType : imageFile.type
-				})
-
-				if(uploadError){
-					console.error('Supabase storage upload error:',uploadError);
-					return fail(500,{
-						error : 'Failed to upload image to storage. Please try again.',
-					})
+				if (uploadError) {
+					console.error('Supabase storage upload error:', uploadError);
+					return fail(500, {
+						error: 'Failed to upload image to storage. Please try again.'
+					});
 				}
 
-				const {data : publicUrlData} = supabase.storage.from('images').getPublicUrl(storagePath);
+				const { data: publicUrlData } = supabase.storage.from('images').getPublicUrl(storagePath);
 				imageUrl = publicUrlData.publicUrl;
+			}
 
+			// video upload and validation
+			if (videoFile instanceof File && videoFile.size > 0) {
+				// validate video type
+				if (!videoFile.type.startsWith('video/')) {
+					return fail(400, {
+						error: 'Uploaded file must be a video'
+					});
+				}
+
+				const storagePath = `posts_video/${Date.now()}_${videoFile.name}`;
+
+				const { error: uploadError } = await supabase.storage
+					.from('videos')
+					.upload(storagePath, videoFile, {
+						cacheControl: '3600',
+						upsert: false,
+						contentType: videoFile.type
+					});
+
+				if (uploadError) {
+					console.error('Supabase storage upload error:', uploadError);
+					return fail(500, {
+						error: 'Failed to upload video to storage. Please try again.'
+					});
+				}
+
+				const { data: publicUrlData } = supabase.storage.from('videos').getPublicUrl(storagePath);
+				videoUrl = publicUrlData.publicUrl;
 			}
 
 			// Get current user ID if authenticated
@@ -295,7 +326,8 @@ export const actions = {
 					category_id: finalCategoryId,
 					user_id: userId || null,
 					ascii_only: asciiOnly,
-					image_url : imageUrl || null 
+					image_url: imageUrl || null,
+					video_url: videoUrl || null
 				})
 				.select()
 				.single();

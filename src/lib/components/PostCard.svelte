@@ -87,8 +87,17 @@
 		{/if}
 
 		{#if post.image_url}
-			<div class="post-image">
+			<div class="post-media">
 				<img src={post.image_url} alt="" />
+			</div>
+		{/if}
+
+		{#if post.video_url}
+			<div class="post-media">
+				<video controls>
+					<source src={post.video_url} type="video/mp4" />
+					Your browser does not support the video tag.
+				</video>
 			</div>
 		{/if}
 
@@ -133,12 +142,37 @@
 </article>
 
 <style>
-	img{
+	.post-media {
+		width: 100%;
+		max-width: 100%;
+		border-radius: 12px;
+		overflow: hidden;
+		margin: 10px 0;
+	}
+
+	.post-media img {
+		display: block;
+		transition: transform 0.3s ease;
+		height: auto;
 		object-fit: cover;
 		max-width: 100%;
 		border-radius: 8px;
-		
 	}
+
+	.post-media img:hover {
+		transform: scale(1.01);
+	}
+
+	.post-media video {
+		display: block;
+		width: 100%;
+		height: 450px;
+		border-radius: 12px;
+		object-fit: fit;
+		background-color: transparent;
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+	}
+
 	.post {
 		display: flex;
 		background-color: #2a2a2a;
