@@ -3,13 +3,14 @@ import { fail, redirect } from '@sveltejs/kit';
 import { getAllCategories, suggestCategories } from '$lib/categories.js';
 import { getCurrentUser } from '$lib/auth.js';
 import { sanitizeToAscii } from '$lib/sanitize.js';
+const MAX_IMAGE_SIZE = 2 * 1024 * 1024; // 2MB limit for image uploads
 
 /** @type {import('./$types').PageServerLoad} */
 export async function load({ cookies, url }) {
 	const categories = await getAllCategories();
 	const userId = getCurrentUser(cookies);
 	const categorySlug = url.searchParams.get('category');
-	
+
 	// Find the category ID if a category slug is provided
 	let preselectedCategoryId = null;
 	if (categorySlug) {
@@ -18,7 +19,7 @@ export async function load({ cookies, url }) {
 			preselectedCategoryId = category.id.toString();
 		}
 	}
-	
+
 	return {
 		categories,
 		isAuthenticated: !!userId,
@@ -63,7 +64,7 @@ export const actions = {
 			// Import node-fetch and SOCKS proxy agent dynamically
 			const nodeFetch = (await import('node-fetch')).default;
 			const { SocksProxyAgent } = await import('socks-proxy-agent');
-			
+
 			// Create SOCKS proxy agent with socks5h:// for DNS leak prevention
 			const torProxy = process.env.TOR_PROXY_URL || 'socks5h://127.0.0.1:9050';
 			const agent = new SocksProxyAgent(torProxy);
@@ -114,7 +115,6 @@ export const actions = {
 				content,
 				categoryId
 			};
-
 		} catch (error) {
 			console.error('Error fetching title:', error);
 
@@ -146,6 +146,10 @@ export const actions = {
 			const content = data.get('content')?.toString().trim();
 			const categoryId = data.get('category_id')?.toString().trim();
 			const asciiOnly = data.get('ascii_only') === 'true';
+			const imageFile = data.get('image_file');
+			const videoFile = data.get('video_file');
+			let imageUrl = '';
+			let videoUrl = '';
 
 			// Validation
 			if (!title) {
@@ -223,7 +227,7 @@ export const actions = {
 					.select('id')
 					.eq('id', categoryId)
 					.single();
-				
+
 				if (categoryError || !category) {
 					return fail(400, {
 						error: 'Invalid category selected',
@@ -234,6 +238,75 @@ export const actions = {
 					});
 				}
 				finalCategoryId = parseInt(categoryId);
+			}
+
+			//Image upload and validation
+			if (imageFile instanceof File && imageFile.size > 0) {
+				// Check image size
+				if (imageFile.size > MAX_IMAGE_SIZE) {
+					return fail(400, {
+						error: 'Image file size must be 2MB or less',
+						title,
+						url,
+						content,
+						categoryId
+					});
+				}
+				// validate image type
+				if (!imageFile.type.startsWith('image/')) {
+					return fail(400, {
+						error: 'Uploaded file must be an image'
+					});
+				}
+				const storagePath = `posts_image/${Date.now()}_${imageFile.name}`;
+
+				const { data: uploadData, error: uploadError } = await supabase.storage
+					.from('images')
+					.upload(storagePath, imageFile, {
+						cacheControl: '3600',
+						upsert: false,
+						contentType: imageFile.type
+					});
+
+				if (uploadError) {
+					console.error('Supabase storage upload error:', uploadError);
+					return fail(500, {
+						error: 'Failed to upload image to storage. Please try again.'
+					});
+				}
+
+				const { data: publicUrlData } = supabase.storage.from('images').getPublicUrl(storagePath);
+				imageUrl = publicUrlData.publicUrl;
+			}
+
+			// video upload and validation
+			if (videoFile instanceof File && videoFile.size > 0) {
+				// validate video type
+				if (!videoFile.type.startsWith('video/')) {
+					return fail(400, {
+						error: 'Uploaded file must be a video'
+					});
+				}
+
+				const storagePath = `posts_video/${Date.now()}_${videoFile.name}`;
+
+				const { error: uploadError } = await supabase.storage
+					.from('videos')
+					.upload(storagePath, videoFile, {
+						cacheControl: '3600',
+						upsert: false,
+						contentType: videoFile.type
+					});
+
+				if (uploadError) {
+					console.error('Supabase storage upload error:', uploadError);
+					return fail(500, {
+						error: 'Failed to upload video to storage. Please try again.'
+					});
+				}
+
+				const { data: publicUrlData } = supabase.storage.from('videos').getPublicUrl(storagePath);
+				videoUrl = publicUrlData.publicUrl;
 			}
 
 			// Get current user ID if authenticated
@@ -252,7 +325,9 @@ export const actions = {
 					content: finalContent || null,
 					category_id: finalCategoryId,
 					user_id: userId || null,
-					ascii_only: asciiOnly
+					ascii_only: asciiOnly,
+					image_url: imageUrl || null,
+					video_url: videoUrl || null
 				})
 				.select()
 				.single();
@@ -270,7 +345,6 @@ export const actions = {
 
 			// Redirect to the new post
 			throw redirect(303, `/posts/${post.id}`);
-
 		} catch (error) {
 			// Handle redirect
 			if (error?.status === 303) {

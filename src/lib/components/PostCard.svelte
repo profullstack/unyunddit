@@ -1,14 +1,14 @@
 <script>
 	import { page } from '$app/stores';
 	import { isAsciiOnly } from '$lib/sanitize.js';
-	
+
 	/** @type {Object} */
 	export let post;
 	/** @type {boolean} */
 	export let showVoting = false;
 	/** @type {boolean} */
 	export let linkToExternal = false;
-	
+
 	// Get current page path for form actions
 	$: currentPath = $page.url.pathname;
 
@@ -25,7 +25,7 @@
 		const date = new Date(dateString);
 		const now = new Date();
 		const diffInSeconds = Math.floor((now - date) / 1000);
-		
+
 		if (diffInSeconds < 60) return `${diffInSeconds}s ago`;
 		if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
 		if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
@@ -51,37 +51,58 @@
 			<div class="vote-score">{post.upvotes - post.downvotes}</div>
 		</div>
 	{/if}
-	
+
 	<div class="post-content">
 		<h3 class="post-title">
 			{#if linkToExternal && post.url}
-				<a href={post.url} target="_blank" rel="noopener noreferrer" class="post-link">{post.title}</a>
-				<a href="/posts/{post.id}" class="discussion-icon" title="View discussion">
-					💬
-				</a>
+				<a href={post.url} target="_blank" rel="noopener noreferrer" class="post-link"
+					>{post.title}</a
+				>
+				<a href="/posts/{post.id}" class="discussion-icon" title="View discussion"> 💬 </a>
 				<span class="domain">({getDomain(post.url)})</span>
 			{:else}
 				<a href="/posts/{post.id}" class="post-link">{post.title}</a>
 				{#if post.url}
-					<a href={post.url} target="_blank" rel="noopener noreferrer" class="external-icon" title="Open external link">
+					<a
+						href={post.url}
+						target="_blank"
+						rel="noopener noreferrer"
+						class="external-icon"
+						title="Open external link"
+					>
 						↗
 					</a>
 					<span class="domain">({getDomain(post.url)})</span>
 				{/if}
 			{/if}
 		</h3>
-		
+
 		{#if post.content}
 			<div class="post-text">
 				{#if post.ascii_only}
 					<span class="ascii-flag" title="ASCII-only content">[x]</span>
 				{/if}
-				{post.content.length > 200
-					? post.content.substring(0, 200) + '...'
-					: post.content}
+				{post.content.length > 200 ? post.content.substring(0, 200) + '...' : post.content}
 			</div>
 		{/if}
-		
+
+		<div class="media {post.image_url && post.video_url ? 'has-both' : 'has-not'}">
+			{#if post.image_url}
+				<div class="post-media">
+					<img src={post.image_url} alt="" />
+				</div>
+			{/if}
+
+			{#if post.video_url}
+				<div class="post-media">
+					<video controls>
+						<source src={post.video_url} type="video/mp4" />
+						Your browser does not support the video tag.
+					</video>
+				</div>
+			{/if}
+		</div>
+
 		<div class="post-meta">
 			{#if post.categories}
 				<a href="/s/{post.categories.slug}" class="category-link">
@@ -92,14 +113,13 @@
 			<span class="time">
 				{showVoting
 					? new Date(post.created_at).toLocaleString('en-US', {
-						year: 'numeric',
-						month: 'short',
-						day: 'numeric',
-						hour: '2-digit',
-						minute: '2-digit'
-					})
-					: formatTimeAgo(post.created_at)
-				}
+							year: 'numeric',
+							month: 'short',
+							day: 'numeric',
+							hour: '2-digit',
+							minute: '2-digit'
+						})
+					: formatTimeAgo(post.created_at)}
 			</span>
 			{#if showVoting}
 				<a href="/posts/{post.id}" class="comments-link">
@@ -124,6 +144,46 @@
 </article>
 
 <style>
+	.post-media {
+		width: 100%;
+		max-width: 100%;
+		overflow: hidden;
+		margin: 10px 0;
+	}
+
+	.media.has-both .post-media:last-child {
+		border-radius: 0 0 8px 8px;
+	}
+
+	.media.has-both .post-media:first-child {
+		border-radius: 8px 8px 0 0;
+	}
+
+	.media.has-not .post-media {
+		border-radius: 12px;
+	}
+
+	.post-media img {
+		display: block;
+		transition: transform 0.3s ease;
+		height: auto;
+		object-fit: cover;
+		max-width: 100%;
+	}
+
+	.post-media img:hover {
+		transform: scale(1.01);
+	}
+
+	.post-media video {
+		display: block;
+		width: 100%;
+		height: 450px;
+		object-fit: fit;
+		background-color: transparent;
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+	}
+
 	.post {
 		display: flex;
 		background-color: #2a2a2a;
@@ -210,7 +270,9 @@
 		margin-left: 6px;
 		padding: 2px 4px;
 		border-radius: 2px;
-		transition: color 0.2s, background-color 0.2s;
+		transition:
+			color 0.2s,
+			background-color 0.2s;
 	}
 
 	.external-icon:hover {
@@ -288,7 +350,9 @@
 		margin-left: 6px;
 		padding: 2px 4px;
 		border-radius: 2px;
-		transition: color 0.2s, background-color 0.2s;
+		transition:
+			color 0.2s,
+			background-color 0.2s;
 	}
 
 	.discussion-icon:hover {
