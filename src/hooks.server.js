@@ -1,5 +1,6 @@
 // Security-focused server hooks for .onion websites
 // Implements strict CSP and privacy headers
+import { SUPABASE_URL } from '$env/static/private';
 import { addFingerprintToLocals } from '$lib/fingerprint.js';
 
 /**
@@ -10,10 +11,10 @@ import { addFingerprintToLocals } from '$lib/fingerprint.js';
 function getClientIP(event) {
 	// 1) Try direct connection first (no proxy)
 	const direct = event.getClientAddress?.();
-	
+
 	// Debug logging for development
 	console.log(`🔍 [IP-DEBUG] Direct connection: ${direct}`);
-	
+
 	// Accept direct connection if it's not localhost (for clearnet)
 	if (direct && direct !== '127.0.0.1' && direct !== '::1') {
 		console.log(`✅ [IP-DEBUG] Using direct connection: ${direct}`);
@@ -22,19 +23,24 @@ function getClientIP(event) {
 
 	// 2) Check common proxy/CDN headers in order of preference
 	const headers = event.request.headers;
-	const xff = headers.get('x-forwarded-for');           // "client, proxy1, proxy2"
+	const xff = headers.get('x-forwarded-for'); // "client, proxy1, proxy2"
 	const real = headers.get('x-real-ip');
-	const cf = headers.get('cf-connecting-ip');           // Cloudflare
-	const ak = headers.get('true-client-ip');             // Akamai
-	const fly = headers.get('fly-client-ip');             // Fly.io
-	const xClient = headers.get('x-client-ip');           // Generic proxy
+	const cf = headers.get('cf-connecting-ip'); // Cloudflare
+	const ak = headers.get('true-client-ip'); // Akamai
+	const fly = headers.get('fly-client-ip'); // Fly.io
+	const xClient = headers.get('x-client-ip'); // Generic proxy
 	const railwayForwarded = headers.get('x-forwarded-for'); // Railway specific
 	const originalIP = headers.get('x-original-forwarded-for'); // Some load balancers
 
 	// Debug ALL headers to understand what Railway is sending
 	console.log(`🔍 [IP-DEBUG] ALL HEADERS:`);
 	for (const [key, value] of headers.entries()) {
-		if (key.toLowerCase().includes('forward') || key.toLowerCase().includes('real') || key.toLowerCase().includes('client') || key.toLowerCase().includes('ip')) {
+		if (
+			key.toLowerCase().includes('forward') ||
+			key.toLowerCase().includes('real') ||
+			key.toLowerCase().includes('client') ||
+			key.toLowerCase().includes('ip')
+		) {
 			console.log(`   ${key}: ${value}`);
 		}
 	}
@@ -74,7 +80,7 @@ function getClientIP(event) {
 		console.log(`✅ [IP-DEBUG] Using x-client-ip: ${xClient}`);
 		return xClient;
 	}
-	
+
 	// x-real-ip last (might be internal IP on Railway/some platforms)
 	if (real) {
 		console.log(`✅ [IP-DEBUG] Using x-real-ip: ${real}`);
@@ -90,20 +96,20 @@ function getClientIP(event) {
 export async function handle({ event, resolve }) {
 	// Log incoming requests for Tor debugging
 	const startTime = Date.now();
-	
+
 	// Get real client IP using SvelteKit 5 best practices
 	const clientIP = getClientIP(event);
-	
+
 	// Make IP available to routes via event.locals
 	event.locals.ip = clientIP;
-	
+
 	// Generate and store browser fingerprint for user tracking
 	addFingerprintToLocals(event);
-	
+
 	const userAgent = event.request.headers.get('user-agent') || 'Unknown';
 	const method = event.request.method;
 	const url = event.url.pathname + event.url.search;
-	
+
 	// Log proxy headers for debugging in production
 	const proxyHeaders = {
 		'x-forwarded-for': event.request.headers.get('x-forwarded-for'),
@@ -114,32 +120,36 @@ export async function handle({ event, resolve }) {
 		'x-client-ip': event.request.headers.get('x-client-ip')
 	};
 	const activeHeaders = Object.fromEntries(Object.entries(proxyHeaders).filter(([k, v]) => v));
-	
-	console.log(`🌐 [HTTP-REQUEST] ${method} ${url} - IP: ${clientIP} - UA: ${userAgent.substring(0, 50)}`);
+
+	console.log(
+		`🌐 [HTTP-REQUEST] ${method} ${url} - IP: ${clientIP} - UA: ${userAgent.substring(0, 50)}`
+	);
 	if (Object.keys(activeHeaders).length > 0) {
 		console.log(`📡 [PROXY-HEADERS]`, activeHeaders);
 	}
-	
+
 	// Resolve the request
 	const response = await resolve(event);
-	
+
 	// Log response
 	const duration = Date.now() - startTime;
 	const statusEmoji = response.status >= 400 ? '❌' : response.status >= 300 ? '⚠️' : '✅';
-	console.log(`${statusEmoji} [HTTP-RESPONSE] ${method} ${url} - ${response.status} - ${duration}ms`);
+	console.log(
+		`${statusEmoji} [HTTP-RESPONSE] ${method} ${url} - ${response.status} - ${duration}ms`
+	);
 
 	// Set strict security headers for .onion websites
 	response.headers.set(
 		'Content-Security-Policy',
 		[
-			"default-src 'none'",           // Block all by default
+			"default-src 'none'", // Block all by default
 			"style-src 'self' 'unsafe-inline'", // Allow self-hosted styles and inline styles
-			"img-src 'self' data:",         // Allow self-hosted images and data URIs
-			"form-action 'self'",           // Only allow forms to submit to same origin
-			"base-uri 'self'",              // Restrict base URI
-			"frame-ancestors 'none'",       // Prevent embedding in frames
-			"object-src 'none'",            // Block plugins
-			"script-src 'none'"             // Block all JavaScript (SSR-only)
+			`img-src 'self' data: ${SUPABASE_URL}`, // Allow self-hosted images and data URIs
+			"form-action 'self'", // Only allow forms to submit to same origin
+			"base-uri 'self'", // Restrict base URI
+			"frame-ancestors 'none'", // Prevent embedding in frames
+			"object-src 'none'", // Block plugins
+			"script-src 'none'" // Block all JavaScript (SSR-only)
 		].join('; ')
 	);
 
@@ -149,7 +159,7 @@ export async function handle({ event, resolve }) {
 	response.headers.set('X-Frame-Options', 'DENY');
 	response.headers.set('X-XSS-Protection', '1; mode=block');
 	response.headers.set('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
-	
+
 	// Remove server identification headers
 	response.headers.delete('Server');
 	response.headers.delete('X-Powered-By');

@@ -3,13 +3,14 @@ import { fail, redirect } from '@sveltejs/kit';
 import { getAllCategories, suggestCategories } from '$lib/categories.js';
 import { getCurrentUser } from '$lib/auth.js';
 import { sanitizeToAscii } from '$lib/sanitize.js';
+const MAX_IMAGE_SIZE = 2 * 1024 * 1024; // 2MB limit for image uploads
 
 /** @type {import('./$types').PageServerLoad} */
 export async function load({ cookies, url }) {
 	const categories = await getAllCategories();
 	const userId = getCurrentUser(cookies);
 	const categorySlug = url.searchParams.get('category');
-	
+
 	// Find the category ID if a category slug is provided
 	let preselectedCategoryId = null;
 	if (categorySlug) {
@@ -18,7 +19,7 @@ export async function load({ cookies, url }) {
 			preselectedCategoryId = category.id.toString();
 		}
 	}
-	
+
 	return {
 		categories,
 		isAuthenticated: !!userId,
@@ -63,7 +64,7 @@ export const actions = {
 			// Import node-fetch and SOCKS proxy agent dynamically
 			const nodeFetch = (await import('node-fetch')).default;
 			const { SocksProxyAgent } = await import('socks-proxy-agent');
-			
+
 			// Create SOCKS proxy agent with socks5h:// for DNS leak prevention
 			const torProxy = process.env.TOR_PROXY_URL || 'socks5h://127.0.0.1:9050';
 			const agent = new SocksProxyAgent(torProxy);
@@ -114,7 +115,6 @@ export const actions = {
 				content,
 				categoryId
 			};
-
 		} catch (error) {
 			console.error('Error fetching title:', error);
 
@@ -146,6 +146,8 @@ export const actions = {
 			const content = data.get('content')?.toString().trim();
 			const categoryId = data.get('category_id')?.toString().trim();
 			const asciiOnly = data.get('ascii_only') === 'true';
+			const imageFile = data.get('image_file');
+			let imageUrl = '';
 
 			// Validation
 			if (!title) {
@@ -223,7 +225,7 @@ export const actions = {
 					.select('id')
 					.eq('id', categoryId)
 					.single();
-				
+
 				if (categoryError || !category) {
 					return fail(400, {
 						error: 'Invalid category selected',
@@ -234,6 +236,46 @@ export const actions = {
 					});
 				}
 				finalCategoryId = parseInt(categoryId);
+			}
+
+			//Image upload and validation
+			if (imageFile instanceof File && imageFile.size > 0) {
+				// Check image size
+				if (imageFile.size > MAX_IMAGE_SIZE) {
+					return fail(400, {
+						error: 'Image file size must be 2MB or less',
+						title,
+						url,
+						content,
+						categoryId
+					});
+				}
+				// validate image type
+				if (!imageFile.type.startsWith('image/')) {
+					return fail(400, {
+						error: 'Uploaded file must be an image'
+					});
+				}
+				const storagePath = `posts_image/${Date.now()}_${imageFile.name}`;
+
+
+				const {data: uploadData, error: uploadError} = await supabase.storage.from('images')
+				.upload(storagePath,imageFile,{
+					cacheControl : '3600',
+					upsert : false,
+					contentType : imageFile.type
+				})
+
+				if(uploadError){
+					console.error('Supabase storage upload error:',uploadError);
+					return fail(500,{
+						error : 'Failed to upload image to storage. Please try again.',
+					})
+				}
+
+				const {data : publicUrlData} = supabase.storage.from('images').getPublicUrl(storagePath);
+				imageUrl = publicUrlData.publicUrl;
+
 			}
 
 			// Get current user ID if authenticated
@@ -252,7 +294,8 @@ export const actions = {
 					content: finalContent || null,
 					category_id: finalCategoryId,
 					user_id: userId || null,
-					ascii_only: asciiOnly
+					ascii_only: asciiOnly,
+					image_url : imageUrl || null 
 				})
 				.select()
 				.single();
@@ -270,7 +313,6 @@ export const actions = {
 
 			// Redirect to the new post
 			throw redirect(303, `/posts/${post.id}`);
-
 		} catch (error) {
 			// Handle redirect
 			if (error?.status === 303) {
