@@ -1,8 +1,8 @@
 <script>
-	/** @type {import('./$types').ActionData} */
+	// /** @type {import('./$types').ActionData} */
 	export let form;
-	
-	/** @type {import('./$types').PageData} */
+
+	// /** @type {import('./$types').PageData} */
 	export let data;
 </script>
 
@@ -15,20 +15,27 @@
 	<section class="content">
 		<div class="submit-form">
 			<h2>Submit a New Post</h2>
-			
+
 			{#if data.isAuthenticated}
 				<div class="auth-info">
-					<p class="info">✅ You are logged in! Your post will persist indefinitely and won't be auto-deleted.</p>
+					<p class="info">
+						✅ You are logged in! Your post will persist indefinitely and won't be auto-deleted.
+					</p>
 				</div>
 			{:else}
-				<p class="info">Your post will be completely anonymous and will automatically delete after 72 hours.</p>
+				<p class="info">
+					Your post will be completely anonymous and will automatically delete after 72 hours.
+				</p>
 				<div class="auth-suggestion">
-					<p>💡 Want your posts to persist forever? <a href="/auth">Login or Register</a> - no email required!</p>
+					<p>
+						💡 Want your posts to persist forever? <a href="/auth">Login or Register</a> - no email required!
+					</p>
 				</div>
 			{/if}
-			
+
 			<div class="content-policy">
-				<strong>⚠️ Content Policy:</strong> No CP allowed or sexual exploitation. Violations will be reported to authorities.
+				<strong>⚠️ Content Policy:</strong> No CP allowed or sexual exploitation. Violations will be
+				reported to authorities.
 			</div>
 
 			{#if form?.error}
@@ -38,12 +45,10 @@
 			{/if}
 
 			{#if form?.success}
-				<div class="success">
-					✅ Title fetched successfully!
-				</div>
+				<div class="success">✅ Title fetched successfully!</div>
 			{/if}
 
-			<form method="POST" action="?/submit" class="form">
+			<form method="POST" action="?/submit" class="form" enctype="multipart/form-data">
 				<div class="form-group">
 					<label for="title">Title *</label>
 					<input
@@ -82,21 +87,31 @@
 
 				<div class="form-group">
 					<label for="category_id">Category (optional)</label>
-					<select
-						id="category_id"
-						name="category_id"
-					>
+					<select id="category_id" name="category_id">
 						<option value="">Select a category...</option>
 						{#each data.categories as category}
 							<option
 								value={category.id}
-								selected={category.id.toString() === (form?.categoryId || data.preselectedCategoryId)}
+								selected={category.id.toString() ===
+									(form?.categoryId || data.preselectedCategoryId)}
 							>
 								{category.name}
 							</option>
 						{/each}
 					</select>
 					<small>Choose a category for better discoverability</small>
+				</div>
+
+				<div class="form-group">
+					<label for="image_url">Image URL (optional)</label>
+					<input
+						type="file"
+						id="image_file"
+						name="image_file"
+						accept="image/*"
+						placeholder="https://example.com/image.jpg"
+					/>
+					<small>Upload an image for your post (Max 2MB)</small>
 				</div>
 
 				<div class="form-group">
@@ -122,7 +137,9 @@
 						/>
 						<span>ASCII-only mode [x]</span>
 					</label>
-					<small>Strip non-ASCII characters (emojis, special Unicode) when displaying this post</small>
+					<small
+						>Strip non-ASCII characters (emojis, special Unicode) when displaying this post</small
+					>
 				</div>
 
 				<div class="form-actions">
@@ -134,7 +151,9 @@
 			<div class="guidelines">
 				<h3>Posting Guidelines</h3>
 				<ul>
-					<li><strong>No CP allowed or sexual exploitation</strong> - violations will be reported</li>
+					<li>
+						<strong>No CP allowed or sexual exploitation</strong> - violations will be reported
+					</li>
 					<li>Posts are completely anonymous - no registration required</li>
 					<li>All posts automatically delete after 72 hours</li>
 					<li>Be respectful and follow basic internet etiquette</li>
@@ -161,7 +180,6 @@
 		margin: 0 auto;
 		padding: 20px;
 	}
-
 
 	.submit-form {
 		background-color: #2a2a2a;
@@ -215,7 +233,7 @@
 	.auth-suggestion a:hover {
 		text-decoration: underline;
 	}
-	
+
 	.content-policy {
 		background-color: #4a2c1a;
 		color: #ffcc99;
@@ -278,7 +296,9 @@
 		padding: 12px 20px;
 		font-size: 0.95rem;
 		cursor: pointer;
-		transition: background-color 0.2s, border-color 0.2s;
+		transition:
+			background-color 0.2s,
+			border-color 0.2s;
 		white-space: nowrap;
 	}
 
@@ -324,7 +344,7 @@
 		font-weight: normal;
 	}
 
-	.checkbox-label input[type="checkbox"] {
+	.checkbox-label input[type='checkbox'] {
 		width: 20px;
 		height: 20px;
 		cursor: pointer;
@@ -418,5 +438,20 @@
 		.form-actions {
 			flex-direction: column;
 		}
+	}
+	.image-preview {
+		width: 300px;
+		min-height: 100px;
+		border: 2px solid #ddd;
+		margin-top: 15px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-weight: bold;
+		color: #ccc;
+	}
+
+	img {
+		width: 100%;
 	}
 </style>
