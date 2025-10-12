@@ -1,6 +1,6 @@
 <script>
 	import PostCard from '$lib/components/PostCard.svelte';
-	
+
 	/** @type {import('./$types').PageData} */
 	export let data;
 
@@ -39,6 +39,12 @@
 		line-height: 1.6;
 	}
 
+	.posts {
+		display: flex;
+		flex-direction: column;
+		gap: 15px;
+	}
+
 	main {
 		max-width: 800px;
 		margin: 0 auto;
@@ -68,6 +74,6 @@
 	@media (max-width: 600px) {
 		main {
 			padding: 10px;
-		}		
+		}
 	}
 </style>

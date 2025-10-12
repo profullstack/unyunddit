@@ -1,8 +1,11 @@
 <footer class="footer">
 	<div class="footer-content">
-		<p class="footer-text">
-			🧅 Unyunddit - Anonymous posting on the Tor network
-		</p>
+		<form method="POST">
+			<button formaction="/?/setTheme&theme=dark">Dark</button>
+			<button formaction="/?/setTheme&theme=light">Light</button>
+		</form>
+
+		<p class="footer-text">🧅 Unyunddit - Anonymous posting on the Tor network</p>
 		<p class="footer-links">
 			<a href="/" class="footer-link">Home</a>
 			<span class="separator">•</span>
@@ -17,6 +20,16 @@
 </footer>
 
 <style>
+	button {
+		cursor: pointer;
+		background-color: #ff6b35;
+		border: none;
+		font-weight: bold;
+		padding: 5px 10px;
+		outline: none;
+		color: white;
+	}
+
 	.footer {
 		margin-top: 50px;
 		padding: 30px 20px;
@@ -25,6 +38,9 @@
 	}
 
 	.footer-content {
+		display: flex;
+		flex-direction: column;
+		gap: 10px;
 		max-width: 800px;
 		margin: 0 auto;
 		text-align: center;

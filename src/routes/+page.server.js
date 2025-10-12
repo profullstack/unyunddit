@@ -1,5 +1,6 @@
 import { handleUpvote, handleDownvote } from '$lib/voting.js';
 import { fetchPostsWithVotes, fetchCategoriesWithCounts } from '$lib/posts.js';
+import { redirect } from '@sveltejs/kit';
 
 /** @type {import('./$types').PageServerLoad} */
 export async function load() {
@@ -32,5 +33,17 @@ export async function load() {
 /** @type {import('./$types').Actions} */
 export const actions = {
 	upvote: handleUpvote,
-	downvote: handleDownvote
+	downvote: handleDownvote,
+	setTheme: ({ url, cookies }) => {
+		const theme = url.searchParams.get('theme');
+		if (theme) {
+			cookies.set('colortheme', theme, {
+				path: '/',
+				maxAge: 60 * 60 * 24 * 365,
+				sameSite: 'strict',
+				secure: true
+			});
+		}
+		throw redirect(303, url.pathname);
+	}
 };

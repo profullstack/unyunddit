@@ -1,6 +1,6 @@
 <script>
 	import PostCard from '$lib/components/PostCard.svelte';
-	
+
 	/** @type {import('./$types').PageData} */
 	export let data;
 
@@ -9,7 +9,10 @@
 
 <svelte:head>
 	<title>Unyunddit - Anonymous Reddit Clone</title>
-	<meta name="description" content="Anonymous Reddit clone for the Tor network. Posts auto-delete after 72 hours." />
+	<meta
+		name="description"
+		content="Anonymous Reddit clone for the Tor network. Posts auto-delete after 72 hours."
+	/>
 </svelte:head>
 
 <main>
@@ -22,7 +25,9 @@
 					{#each popularCategories.slice(0, 12) as category}
 						<a href="/s/{category.slug}" class="category-card">
 							<span class="category-name">{category.name}</span>
-							<span class="category-count">{category.actual_post_count || category.post_count || 0} posts</span>
+							<span class="category-count"
+								>{category.actual_post_count || category.post_count || 0} posts</span
+							>
 						</a>
 					{/each}
 				</div>
@@ -49,15 +54,6 @@
 </main>
 
 <style>
-	:global(body) {
-		margin: 0;
-		padding: 0;
-		font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-		background-color: #1a1a1a;
-		color: #e0e0e0;
-		line-height: 1.6;
-	}
-
 	main {
 		max-width: 800px;
 		margin: 0 auto;
@@ -92,7 +88,9 @@
 		padding: 15px;
 		text-decoration: none;
 		color: #e0e0e0;
-		transition: border-color 0.2s, background-color 0.2s;
+		transition:
+			border-color 0.2s,
+			background-color 0.2s;
 	}
 
 	.category-card:hover {
@@ -116,8 +114,6 @@
 		flex-direction: column;
 		gap: 15px;
 	}
-
-	
 
 	.empty-state {
 		text-align: center;
@@ -144,8 +140,6 @@
 			padding: 10px;
 		}
 
-		
-
 		.categories-grid {
 			grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
 			gap: 10px;
@@ -154,7 +148,5 @@
 		.category-card {
 			padding: 12px;
 		}
-
-		
 	}
 </style>
