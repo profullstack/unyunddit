@@ -1,10 +1,10 @@
 <script>
 	/** @type {string} */
 	export let currentPage = '';
-	
+
 	/** @type {string|null} */
 	export let username = null;
-	
+
 	/** @type {boolean} */
 	export let isAuthenticated = false;
 </script>
@@ -15,13 +15,15 @@
 		<a href="/submit" class="nav-link" class:active={currentPage === 'submit'}>Submit Post</a>
 		<a href="/popular" class="nav-link" class:active={currentPage === 'popular'}>Popular</a>
 		<a href="/new" class="nav-link" class:active={currentPage === 'new'}>Latest</a>
-		<a href="/comments" class="nav-link" class:active={currentPage === 'comments'}>Latest Comments</a>
+		<a href="/comments" class="nav-link" class:active={currentPage === 'comments'}
+			>Latest Comments</a
+		>
 	</div>
-	
+
 	<div class="nav-right">
 		<!-- Debug info (remove in production) -->
 		<!-- Auth: {isAuthenticated}, User: {username} -->
-		
+
 		{#if isAuthenticated}
 			<a href="/settings" class="nav-link settings-link" class:active={currentPage === 'settings'}>
 				Settings ({username})
@@ -48,6 +50,20 @@
 		display: flex;
 		gap: 15px;
 		flex-wrap: wrap;
+	}
+
+	:global(.app[data-theme='light']) .nav-link {
+		color: #888;
+		text-decoration: none;
+		padding: 8px 16px;
+		border-radius: 4px;
+		transition: background-color 0.2s;
+		white-space: nowrap;
+	}
+
+	:global(.app[data-theme='light']) .nav-link.active {
+		background-color: #ff6b35;
+		color: white;
 	}
 
 	.nav-right {

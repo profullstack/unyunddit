@@ -122,18 +122,6 @@
 				</div>
 
 				<div class="form-group">
-					<label for="image_url">Image URL (optional)</label>
-					<input
-						type="file"
-						id="image_file"
-						name="image_file"
-						accept="image/*"
-						placeholder="https://example.com/image.jpg"
-					/>
-					<small>Upload an image for your post (Max 2MB)</small>
-				</div>
-
-				<div class="form-group">
 					<label for="content">Text (optional)</label>
 					<textarea
 						id="content"
