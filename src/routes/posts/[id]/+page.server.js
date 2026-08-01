@@ -4,6 +4,7 @@ import { handleUpvote, handleDownvote } from '$lib/voting.js';
 import { fetchPostWithVotes } from '$lib/posts.js';
 import { getFingerprint } from '$lib/fingerprint.js';
 import { sanitizeToAscii } from '$lib/sanitize.js';
+import { getCurrentUser } from '$lib/auth.js';
 
 /**
  * Build a hierarchical comment tree from flat comment array
@@ -12,18 +13,18 @@ import { sanitizeToAscii } from '$lib/sanitize.js';
  */
 function buildCommentTree(comments) {
 	if (!comments || comments.length === 0) return [];
-	
+
 	// Create a map for quick lookup
 	const commentMap = new Map();
 	const rootComments = [];
-	
+
 	// First pass: create map and add children arrays
 	comments.forEach(comment => {
 		comment.children = [];
 		comment.depth = 0;
 		commentMap.set(comment.id, comment);
 	});
-	
+
 	// Second pass: build the tree structure
 	comments.forEach(comment => {
 		if (comment.parent_id && commentMap.has(comment.parent_id)) {
@@ -34,7 +35,7 @@ function buildCommentTree(comments) {
 			rootComments.push(comment);
 		}
 	});
-	
+
 	// Flatten the tree for display while preserving hierarchy
 	function flattenTree(nodes, result = []) {
 		nodes.forEach(node => {
@@ -47,10 +48,10 @@ function buildCommentTree(comments) {
 		});
 		return result;
 	}
-	
+
 	// Sort root comments by creation time
 	rootComments.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
-	
+
 	return flattenTree(rootComments);
 }
 
@@ -58,7 +59,7 @@ function buildCommentTree(comments) {
 export async function load({ params, url }) {
 	const postId = params.id?.toString()?.trim();
 	const replyTo = url.searchParams.get('reply_to');
-	
+
 	if (!postId) {
 		throw error(404, 'Post not found');
 	}
@@ -66,7 +67,7 @@ export async function load({ params, url }) {
 	try {
 		// Get the post with vote counts
 		const post = await fetchPostWithVotes(postId);
-		
+
 		if (!post) {
 			throw error(404, 'Post not found');
 		}
@@ -100,11 +101,12 @@ export async function load({ params, url }) {
 export const actions = {
 	upvote: handleUpvote,
 	downvote: handleDownvote,
-	
-	comment: async ({ request, params, locals }) => {
+
+	comment: async ({ request, params, locals, cookies }) => {
 		const postId = params.id?.toString()?.trim();
 		const browserFingerprint = getFingerprint(locals);
-		
+		const userId = getCurrentUser(cookies);
+
 		if (!postId) {
 			return fail(400, { error: 'Invalid post ID' });
 		}
@@ -158,12 +160,11 @@ export const actions = {
 				content: finalContent,
 				browser_fingerprint: browserFingerprint,
 				parent_id: parentId && parentId !== '' ? parentId : null,
+				user_id: userId || null,
 				ascii_only: asciiOnly
 			};
 
-			const { error: insertError } = await supabase
-				.from('comments')
-				.insert(commentData);
+			const { error: insertError } = await supabase.from('comments').insert(commentData);
 
 			if (insertError) {
 				console.error('Error inserting comment:', insertError);
