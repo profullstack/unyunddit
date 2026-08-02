@@ -115,7 +115,15 @@ export async function handleUpvote(event) {
 
 	// Redirect back to the referring page to refresh the data
 	const referer = request.headers.get('referer');
-	const redirectUrl = referer ? new URL(referer).pathname : '/';
+	let redirectUrl = '/';
+	if (referer) {
+		try {
+			redirectUrl = new URL(referer).pathname;
+		} catch {
+			// malformed or relative Referer; fall back to the home page
+			redirectUrl = '/';
+		}
+	}
 	throw redirect(302, redirectUrl);
 }
 
@@ -226,6 +234,14 @@ export async function handleDownvote(event) {
 
 	// Redirect back to the referring page to refresh the data
 	const referer = request.headers.get('referer');
-	const redirectUrl = referer ? new URL(referer).pathname : '/';
+	let redirectUrl = '/';
+	if (referer) {
+		try {
+			redirectUrl = new URL(referer).pathname;
+		} catch {
+			// malformed or relative Referer; fall back to the home page
+			redirectUrl = '/';
+		}
+	}
 	throw redirect(302, redirectUrl);
 }
